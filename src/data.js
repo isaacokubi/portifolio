@@ -33,9 +33,9 @@ export const starterData = {
     { name: 'M-Pesa integration', level: 'Learning', group: 'Integrations' },
   ],
   projects: [
-    { title: 'Coherent Tours', category: 'Business platform', description: 'A tour operations management platform concept covering tour catalogues, bookings, team assignments, finance workflows, and multi-tenant business operations.', stack: 'React, Node.js, Express, MongoDB', demo: 'https://hussein-mboya-tours.vercel.app', featured: true },
-    { title: 'Chatify', category: 'Communication app', description: 'A real-time communication app concept focused on conversations, context-aware memories, and message expiry, with a Flutter client and API backend.', stack: 'Flutter, Dart, Node.js, Socket.IO, MongoDB', demo: '', featured: true },
-    { title: 'BookHub', category: 'Book marketplace', description: 'A book discovery and selling platform concept with store experiences, product browsing, cart and order flows, reviews, and M-Pesa payment workflows.', stack: 'JavaScript, React, Node.js, MongoDB', demo: 'https://bookhub-swart.vercel.app', featured: true },
+    { title: 'Coherent Tours', category: 'Business platform', description: 'A tour operations management platform concept covering tour catalogues, bookings, team assignments, finance workflows, and multi-tenant business operations.', stack: 'React, Node.js, Express, MongoDB', demo: 'https://hussein-mboya-tours.vercel.app', image: '', featured: true },
+    { title: 'Chatify', category: 'Communication app', description: 'A real-time communication app concept focused on conversations, context-aware memories, and message expiry, with a Flutter client and API backend.', stack: 'Flutter, Dart, Node.js, Socket.IO, MongoDB', demo: '', image: '', featured: true },
+    { title: 'BookHub', category: 'Book marketplace', description: 'A book discovery and selling platform concept with store experiences, product browsing, cart and order flows, reviews, and M-Pesa payment workflows.', stack: 'JavaScript, React, Node.js, MongoDB', demo: 'https://bookhub-swart.vercel.app', image: '', featured: true },
   ],
   education: [
     { qualification: 'Diploma in Software Development', institution: 'IST, Kenya', start: '', end: '', status: 'Completed', details: 'Coursework included web development, JavaScript, React, MERN stack, PHP, Laravel, Vue.js, and Flutter/Dart.' },
@@ -45,11 +45,11 @@ export const starterData = {
   ],
   certifications: [],
   services: [
-    { title: 'Website development', description: 'Responsive business websites and landing pages designed to turn visitors into enquiries.' },
-    { title: 'Business systems', description: 'Admin dashboards and workflows for managing customers, records, operations, and reports.' },
-    { title: 'Payments & integrations', description: 'API integrations and payment-flow implementation, including M-Pesa where provider access is available.' },
-    { title: 'E-commerce platforms', description: 'Product catalogues, store experiences, carts, and order management.' },
-    { title: 'Mobile applications', description: 'Cross-platform mobile app interfaces and API-connected features with Flutter.' },
-    { title: 'Maintenance & support', description: 'Bug fixes, usability improvements, deployment assistance, and ongoing updates.' },
+    { title: 'Website development', image: '', description: 'Responsive business websites and landing pages designed to turn visitors into enquiries.' },
+    { title: 'Business systems', image: '', description: 'Admin dashboards and workflows for managing customers, records, operations, and reports.' },
+    { title: 'Payments & integrations', image: '', description: 'API integrations and payment-flow implementation, including M-Pesa where provider access is available.' },
+    { title: 'E-commerce platforms', image: '', description: 'Product catalogues, store experiences, carts, and order management.' },
+    { title: 'Mobile applications', image: '', description: 'Cross-platform mobile app interfaces and API-connected features with Flutter.' },
+    { title: 'Maintenance & support', image: '', description: 'Bug fixes, usability improvements, deployment assistance, and ongoing updates.' },
   ],
 };
