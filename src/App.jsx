@@ -144,7 +144,7 @@ function App() {
       <nav className="desktop-nav" aria-label="Main navigation">{nav.map(([label, page]) => <a key={label} href={`#${page}`} className={currentPage === page ? 'nav-active' : ''} aria-current={currentPage === page ? 'page' : undefined} onClick={event => { event.preventDefault(); navigateTo(page); }}>{label}</a>)}</nav>
       <div className="header-actions">
         <button className="button button-quiet header-edit" onClick={openEditor}><Pencil size={15} /> Edit portfolio</button>
-        <a className="button button-primary header-contact" href={contactHref}>Let's talk <ArrowUpRight size={16} /></a>
+        <a className="button button-primary header-contact" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); navigateTo("contact"); } }}>Let's talk <ArrowUpRight size={16} /></a>
         <button className="mobile-menu" aria-label="Toggle navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen(v => !v)}>{mobileOpen ? <X /> : <Menu />}</button>
       </div>
       {mobileOpen && <nav className="mobile-nav" aria-label="Mobile navigation">{nav.map(([label, page]) => <a key={label} href={`#${page}`} className={currentPage === page ? 'nav-active' : ''} aria-current={currentPage === page ? 'page' : undefined} onClick={event => { event.preventDefault(); navigateTo(page); }}>{label}</a>)}<button onClick={() => { setMobileOpen(false); openEditor(); }}>Edit portfolio</button></nav>}
@@ -161,7 +161,7 @@ function App() {
           <p className="hero-description">{p.headline} {p.about}</p>
           <div className="hero-actions">
             <a className="button button-primary button-large" href="#work" onClick={event => { event.preventDefault(); navigateTo("work"); }}>Explore my work <ArrowDownRight size={18} /></a>
-            <a className="button button-outline button-large" href={contactHref}><Mail size={17} /> Get in touch</a>
+            <a className="button button-outline button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); navigateTo("contact"); } }}><Mail size={17} /> Get in touch</a>
           </div>
           <div className="hero-meta"><span><MapPin size={15} /> {p.location || 'Available worldwide'}</span><span><Code2 size={15} /> {p.yearsExperience || 'Software development'}</span></div>
         </div>
