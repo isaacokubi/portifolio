@@ -536,3 +536,64 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 @media (max-width: 760px) {
   .portrait-image { border-width: 5px; }
 }
+
+
+/* Admin login and account controls. No registration entry point is exposed. */
+.login-button,
+.account-settings-button,
+.account-logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.auth-panel {
+  width: min(100%, 480px);
+  max-height: min(88vh, 760px);
+  overflow: auto;
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px solid rgba(184,198,234,.17);
+  border-radius: 22px;
+  background: linear-gradient(155deg, rgba(17,28,48,.99), rgba(8,14,27,.99));
+  box-shadow: 0 28px 90px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.035);
+}
+.auth-form {
+  display: grid;
+  gap: 17px;
+  margin-top: 22px;
+}
+.auth-form .field input {
+  width: 100%;
+}
+.auth-submit {
+  width: 100%;
+  min-height: 48px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.auth-error {
+  margin: 18px 0 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(255,115,115,.28);
+  border-radius: 10px;
+  color: #ffb5b5;
+  background: rgba(255,75,75,.08);
+  font-size: 13px;
+}
+.auth-security-note {
+  margin: 0;
+  color: var(--subtle);
+  font-size: 11px;
+  line-height: 1.7;
+}
+@media (max-width: 1000px) {
+  .account-settings-button,
+  .account-logout-button { padding-inline: 9px; font-size: 10px; }
+}
+@media (max-width: 760px) {
+  .header-actions .account-settings-button,
+  .header-actions .account-logout-button { display: none; }
+  .mobile-nav button { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; }
+  .auth-panel { border-radius: 18px; }
+}
