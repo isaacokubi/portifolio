@@ -10,7 +10,7 @@ import { starterData } from './data.js';
 const STORAGE_KEY = 'isaac-okubi-portfolio-v1';
 const emptyEntry = {
   skills: { name: '', level: 'Intermediate', group: 'General' },
-  projects: { title: '', category: 'Web application', description: '', stack: '', link: '', demo: '', image: '', featured: false },
+  projects: { title: '', category: 'Web application', description: '', stack: '', demo: '', image: '', featured: false },
   education: { qualification: '', institution: '', start: '', end: '', status: 'Completed', details: '' },
   experience: { role: '', company: '', start: '', end: '', location: '', details: '' },
   certifications: { name: '', issuer: '', date: '', credential: '' },
@@ -131,7 +131,12 @@ function App() {
   const fileInput = useRef(null);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      // Browser storage has a quota; keep the current session usable and tell the editor user.
+      setNotice('Browser storage is full. Export your portfolio backup or remove some large images.');
+    }
   }, [data]);
 
   const featuredProjects = useMemo(() => data.projects.filter(p => p.featured), [data.projects]);
