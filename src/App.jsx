@@ -10,11 +10,11 @@ import { starterData } from './data.js';
 const STORAGE_KEY = 'isaac-okubi-portfolio-v1';
 const emptyEntry = {
   skills: { name: '', level: 'Intermediate', group: 'General' },
-  projects: { title: '', category: 'Web application', description: '', stack: '', link: '', demo: '', featured: false },
+  projects: { title: '', category: 'Web application', description: '', stack: '', link: '', demo: '', image: '', featured: false },
   education: { qualification: '', institution: '', start: '', end: '', status: 'Completed', details: '' },
   experience: { role: '', company: '', start: '', end: '', location: '', details: '' },
   certifications: { name: '', issuer: '', date: '', credential: '' },
-  services: { title: '', description: '' },
+  services: { title: '', description: '', image: '' },
 };
 const sectionLabels = {
   skills: 'Skills', projects: 'Projects', education: 'Education',
@@ -38,6 +38,72 @@ function loadData() {
   }
 }
 
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) { reject(new Error('Choose a JPG, PNG, or WebP image.')); return; }
+    if (file.size > 10 * 1024 * 1024) { reject(new Error('Choose an image smaller than 10 MB.')); return; }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('The image could not be read.'));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error('That image could not be opened.'));
+      image.onload = () => {
+        const scale = Math.min(1, 1200 / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext('2d');
+        if (!context) { reject(new Error('Image processing is not available.')); return; }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/webp', 0.78));
+      };
+      image.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function ImageUploadField({ label, value, onChange, wide = false }) {
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+  const handleFile = async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try { onChange(await compressImage(file)); setError(''); }
+    catch (uploadError) { setError(uploadError.message || 'Could not upload this image.'); }
+    event.target.value = '';
+  };
+  return <div className={cx('field image-upload-field', wide && 'field-wide')}>
+    <span>{label}</span><div className="image-upload-control">
+      <div className="image-upload-preview">{value ? <img src={value} alt="" /> : <span><Upload size={19} /><small>No image selected</small></span>}</div>
+      <div className="image-upload-actions">
+        <button type="button" className="button button-quiet" onClick={() => inputRef.current?.click()}><Upload size={15} /> {value ? 'Replace image' : 'Choose image'}</button>
+        {value && <button type="button" className="button button-outline" onClick={() => { onChange(''); setError(''); }}>Remove</button>}
+        <small>JPG, PNG, or WebP · max 10 MB before compression</small>{error && <small className="image-upload-error" role="alert">{error}</small>}
+      </div><input ref={inputRef} className="sr-only" type="file" accept="image/*" onChange={handleFile} />
+    </div>
+  </div>;
+}
+function ProfileAvatar({ name }) {
+  const initials = (name || 'Developer').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase();
+  return <div className="avatar-illustration" role="img" aria-label={name + ' profile illustration'}>
+    <div className="avatar-halo" /><svg viewBox="0 0 360 430" aria-hidden="true">
+      <defs>
+        <linearGradient id="avatarSkin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#d9a17c" /><stop offset="1" stopColor="#8e573f" /></linearGradient>
+        <linearGradient id="avatarJacket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#253b61" /><stop offset="1" stopColor="#10182c" /></linearGradient>
+        <linearGradient id="avatarShirt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#d0f98b" /><stop offset="1" stopColor="#65d9df" /></linearGradient>
+      </defs>
+      <circle cx="180" cy="174" r="118" fill="#8e9bff" opacity=".07" />
+      <path d="M70 430c9-89 47-135 110-135s101 46 110 135" fill="url(#avatarJacket)" /><path d="M145 282h70l-7 63h-56z" fill="url(#avatarSkin)" />
+      <path d="M116 131c0-56 29-87 66-87 48 0 70 37 66 94l-12 66H125z" fill="#141525" /><ellipse cx="180" cy="166" rx="66" ry="82" fill="url(#avatarSkin)" />
+      <path d="M114 151c-5-61 23-105 72-105 40 0 68 29 67 83-20-1-38-10-51-25-23 26-49 39-88 47z" fill="#111321" />
+      <path d="M130 167c10-6 21-6 30 0M201 167c10-6 21-6 30 0" stroke="#33221f" strokeWidth="5" strokeLinecap="round" fill="none" /><path d="M166 201c10 7 20 7 30 0" stroke="#5c2f2a" strokeWidth="4" strokeLinecap="round" fill="none" />
+      <path d="M136 309l44 44 44-44 38 29-24 92H122l-24-92z" fill="url(#avatarJacket)" /><path d="M154 303l26 50 26-50-13-15h-26z" fill="url(#avatarShirt)" />
+      <path d="M98 338l47-25 35 40-36 77H96zM262 338l-47-25-35 40 36 77h48z" fill="#18233c" />
+      <circle cx="180" cy="386" r="25" fill="#c9f477" opacity=".08" /><text x="180" y="394" fontSize="19" textAnchor="middle" fill="#c9f477" fontWeight="700">{initials}</text>
+    </svg><span className="avatar-caption"><span className="status-dot" /> DIGITAL CRAFTSMAN</span>
+  </div>;
+}
 function IconLink({ href, label, children, className = '' }) {
   if (!href) return null;
   return <a href={href} aria-label={label} title={label} className={cx('icon-link', className)} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noreferrer' : undefined}>{children}</a>;
@@ -166,16 +232,16 @@ function App() {
           </div>
           <div className="hero-meta"><span><MapPin size={15} /> {p.location || 'Available worldwide'}</span><span><Code2 size={15} /> {p.yearsExperience || 'Software development'}</span></div>
         </div>
-        <div className="hero-visual">
-          <div className="visual-topline"><span>BUILD / LEARN / REPEAT</span><span className="mono">001—∞</span></div>
-          <div className="code-window">
-            <div className="window-bar"><span /><span /><span /><p>developer.js</p></div>
-            <pre><code><span className="code-purple">const</span> <span className="code-blue">developer</span> = {'{'}{ '\n' }  name: <span className="code-green">'{p.name}'</span>,{ '\n' }  focus: <span className="code-green">'Useful products'</span>,{ '\n' }  mindset: <span className="code-green">'Keep learning'</span>,{ '\n' }  build: <span className="code-purple">async</span> () =&gt; {'{'}{ '\n' }    <span className="code-purple">return</span> <span className="code-green">'Make it work. Make it better.'</span>;{ '\n' }  {'}'}{ '\n'}{'}'};</code></pre>
-            <div className="code-footer"><span><span className="status-dot" /> Ready to build</span><span>UTF-8&nbsp; · &nbsp;JavaScript</span></div>
+        <div className="hero-visual portrait-visual">
+          <div className="star-field" aria-hidden="true">
+            {Array.from({ length: 30 }, (_, i) => <span key={i} className={i % 5 === 0 ? 'falling-star' : 'twinkle-star'} style={{ '--star-left': String((i * 37 + 11) % 100) + '%', '--star-top': String((i * 23 + 7) % 100) + '%', '--star-delay': String(-(i % 11) * 1.3) + 's', '--star-duration': String(5 + (i % 7)) + 's' }} />)}
+          </div><div className="visual-topline"><span>BUILD / LEARN / REPEAT</span><span className="mono">001—∞</span></div>
+          <div className="portrait-frame"><div className="portrait-glow" />
+            <div className="portrait-image">{p.portraitUrl ? <img src={p.portraitUrl} alt={'Portrait of ' + p.name} /> : <ProfileAvatar name={p.name} />}</div>
+            <div className="portrait-ring portrait-ring-one" /><div className="portrait-ring portrait-ring-two" /><span className="portrait-corner portrait-corner-tl" /><span className="portrait-corner portrait-corner-br" />
           </div>
           <div className="floating-card card-top"><Sparkles size={16} /><span>Curiosity-driven</span></div>
           <div className="floating-card card-bottom"><span className="mini-bars"><i /><i /><i /><i /><i /></span><span>Ideas → Impact</span></div>
-          <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
         </div>
         <a href="#about" className="scroll-cue" onClick={event => { event.preventDefault(); navigateTo("about"); }}><span className="scroll-wheel" /> Scroll to explore <ArrowDown size={14} /></a>
       </section>
@@ -203,7 +269,7 @@ function App() {
       <section id="work" className={cx('section-wrap section-block', currentPage !== 'work' && 'page-hidden')}>
         <SectionHeading number="03" eyebrow="SELECTED PROJECTS" title={<>A few things I've<br /><span className="muted-heading">been building.</span></>} detail="Projects are where problem-solving meets practice. Open a live demo when one is available." />
         <div className="project-grid">{featuredProjects.map((project, index) => <article className={cx('project-card', index === 0 && 'project-featured')} key={project.title}>
-          <div className={cx('project-art', `project-art-${index % 3}`)}><div className="project-art-top"><span>0{index + 1} / PROJECT</span><span className="art-spark"><ArrowUpRight size={20} /></span></div><div className="project-graphic"><div className="graphic-window"><div className="graphic-lines"><i /><i /><i /></div><div className="graphic-panel"><span /><span /><span /></div><div className="graphic-base" /></div><div className="graphic-orb" /></div><span className="project-category">{project.category}</span></div>
+          <div className={cx('project-art', `project-art-${index % 3}`)}>{project.image && <img className="project-cover-image" src={project.image} alt={project.title + ' project preview'} loading="lazy" />}<div className="project-art-top"><span>0{index + 1} / PROJECT</span><span className="art-spark"><ArrowUpRight size={20} /></span></div><div className="project-graphic"><div className="graphic-window"><div className="graphic-lines"><i /><i /><i /></div><div className="graphic-panel"><span /><span /><span /></div><div className="graphic-base" /></div><div className="graphic-orb" /></div><span className="project-category">{project.category}</span></div>
           <div className="project-info"><div className="project-title-row"><h3>{project.title}</h3><span className="project-index">0{index + 1}</span></div><p>{project.description}</p><div className="stack-list">{(project.stack || '').split(',').map(s => s.trim()).filter(Boolean).map(s => <span key={s}>{s}</span>)}</div><div className="project-links">{project.demo && <a href={project.demo} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Live demo <ArrowUpRight size={14} /></a>}</div></div>
         </article>)}
         {featuredProjects.length === 0 && <div className="empty-state">Your featured projects will appear here. Use <strong>Edit portfolio</strong> to add and feature projects.</div>}</div>
@@ -220,7 +286,7 @@ function App() {
 
       <section id="services" className={cx('section-wrap section-block', currentPage !== 'services' && 'page-hidden')}>
         <SectionHeading number="05" eyebrow="WAYS WE CAN WORK" title={<>Let's build something<br /><span className="muted-heading">useful together.</span></>} detail="From a first website to a workflow that saves your team time, I help turn business needs into digital tools." />
-        <div className="services-grid">{data.services.map((service, i) => <article className="service-card" key={service.title}><span className="service-number">0{i + 1}</span><span className="service-arrow"><ArrowUpRight size={19} /></span><h3>{service.title}</h3><p>{service.description}</p></article>)}</div>
+        <div className="services-grid">{data.services.map((service, i) => <article className={cx('service-card', service.image && 'service-card-with-image')} key={service.title}>{service.image && <img className="service-cover-image" src={service.image} alt="" loading="lazy" />}<span className="service-number">0{i + 1}</span><span className="service-arrow"><ArrowUpRight size={19} /></span><h3>{service.title}</h3><p>{service.description}</p></article>)}</div>
       </section>
 
       <section id="contact" className={cx('section-wrap contact-section', currentPage !== 'contact' && 'page-hidden')}>
@@ -245,7 +311,7 @@ function App() {
             <Field label="Phone (optional)" value={draft.profile.phone} onChange={v => updateProfile('phone', v)} />
             <Field label="Availability status" value={draft.profile.availability} onChange={v => updateProfile('availability', v)} />
             <Field label="Experience label" value={draft.profile.yearsExperience} onChange={v => updateProfile('yearsExperience', v)} />
-            <Field label="Portrait image URL (optional)" value={draft.profile.portraitUrl} onChange={v => updateProfile('portraitUrl', v)} />
+            <ImageUploadField label="Homepage profile image" value={draft.profile.portraitUrl} onChange={v => updateProfile('portraitUrl', v)} wide />
             <Field label="Resume URL (optional)" value={draft.profile.resumeUrl} onChange={v => updateProfile('resumeUrl', v)} />
             <Field label="Short headline" value={draft.profile.headline} onChange={v => updateProfile('headline', v)} wide />
             <Field label="About me" value={draft.profile.about} onChange={v => updateProfile('about', v)} multiline wide />
@@ -274,13 +340,13 @@ function Field({ label, value, onChange, type = 'text', multiline = false, wide 
 function EntryForm({ type, value, onChange, onSave, onCancel }) {
   const fields = {
     skills: [['name','Skill name'],['level','Level'],['group','Category']],
-    projects: [['title','Project title'],['category','Category'],['description','Description','textarea'],['stack','Tech stack (comma separated)'],['demo','Live demo URL (optional)'],['featured','Show on portfolio','checkbox']],
+    projects: [['title','Project title'],['category','Category'],['description','Description','textarea'],['stack','Tech stack (comma separated)'],['demo','Live demo URL (optional)'],['image','Project cover image','image'],['featured','Show on portfolio','checkbox']],
     education: [['qualification','Qualification'],['institution','Institution'],['start','Start date/year'],['end','End date/year'],['status','Status'],['details','Details','textarea']],
     experience: [['role','Role / position'],['company','Company / organisation'],['start','Start date/year'],['end','End date/year or Present'],['location','Location'],['details','Responsibilities / achievements','textarea']],
     certifications: [['name','Certificate / course name'],['issuer','Issuing organisation'],['date','Date earned'],['credential','Credential URL']],
-    services: [['title','Service title'],['description','Description','textarea']],
+    services: [['title','Service title'],['description','Description','textarea'],['image','Service image','image']],
   }[type] || [];
-  return <div className="entry-form">{fields.map(([key, label, kind]) => <label className={cx('field', (kind === 'textarea' || key === 'description') && 'field-wide')} key={key}><span>{label}</span>{kind === 'textarea' ? <textarea rows={3} value={value[key] || ''} onChange={e => onChange({ ...value, [key]: e.target.value })} /> : kind === 'checkbox' ? <input type="checkbox" checked={Boolean(value[key])} onChange={e => onChange({ ...value, [key]: e.target.checked })} /> : <input value={value[key] || ''} onChange={e => onChange({ ...value, [key]: e.target.value })} />}</label>)}<div className="entry-form-actions"><button className="button button-quiet" onClick={onCancel}>Cancel</button><button className="button button-primary" onClick={onSave}><Check size={15} /> Done</button></div></div>;
+  return <div className="entry-form">{fields.map(([key, label, kind]) => kind === 'image' ? <ImageUploadField key={key} label={label} value={value[key] || ''} onChange={image => onChange({ ...value, [key]: image })} wide /> : <label className={cx('field', (kind === 'textarea' || key === 'description') && 'field-wide')} key={key}><span>{label}</span>{kind === 'textarea' ? <textarea rows={3} value={value[key] || ''} onChange={e => onChange({ ...value, [key]: e.target.value })} /> : kind === 'checkbox' ? <input type="checkbox" checked={Boolean(value[key])} onChange={e => onChange({ ...value, [key]: e.target.checked })} /> : <input value={value[key] || ''} onChange={e => onChange({ ...value, [key]: e.target.value })} />}</label>)}<div className="entry-form-actions"><button className="button button-quiet" onClick={onCancel}>Cancel</button><button className="button button-primary" onClick={onSave}><Check size={15} /> Done</button></div></div>;
 }
 
 export default App;
