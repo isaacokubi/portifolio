@@ -4,7 +4,7 @@ export const starterData = {
     name: 'Isaac Okubi',
     role: 'Software Developer',
     location: 'Kenya',
-    email: 'hello@example.com',
+    email: '',
     phone: '',
     headline: 'I turn ideas into reliable digital products.',
     about: "I'm a software developer focused on building modern websites, practical business systems, and mobile experiences. I enjoy solving real problems with thoughtful user experiences, maintainable code, and technology that helps people work smarter.",
@@ -17,7 +17,7 @@ export const starterData = {
     github: 'https://github.com/isaacokubi',
     linkedin: '',
     website: '',
-    email: 'hello@example.com',
+    email: '',
   },
   skills: [
     { name: 'JavaScript', level: 'Advanced', group: 'Languages' },
