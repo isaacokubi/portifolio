@@ -15,7 +15,7 @@ export const starterData = {
   },
   links: {
     linkedin: '',
-    github: '',
+    github: 'https://github.com/isaacokubi',
     website: '',
     email: '',
   },
