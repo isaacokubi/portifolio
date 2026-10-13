@@ -521,3 +521,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .hero { padding-top: 4px; padding-bottom: 24px; }
   .hero-visual { height: min(56svh, 400px); }
 }
+
+
+/* Simplify the portrait decoration: one confident border instead of layered rings and corner lines. */
+.portrait-ring,
+.portrait-corner {
+  display: none !important;
+}
+.portrait-image {
+  border: 6px solid var(--lime);
+  border-radius: 22px;
+  box-shadow: 0 22px 58px rgba(0,0,0,.38), 0 0 26px rgba(201,244,119,.12);
+}
+@media (max-width: 760px) {
+  .portrait-image { border-width: 5px; }
+}
