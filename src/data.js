@@ -14,7 +14,6 @@ export const starterData = {
     portraitUrl: '',
   },
   links: {
-    github: 'https://github.com/isaacokubi',
     linkedin: '',
     website: '',
     email: '',
@@ -34,9 +33,9 @@ export const starterData = {
     { name: 'M-Pesa integration', level: 'Learning', group: 'Integrations' },
   ],
   projects: [
-    { title: 'Coherent Tours', category: 'Business platform', description: 'A tour operations management platform concept covering tour catalogues, bookings, team assignments, finance workflows, and multi-tenant business operations.', stack: 'React, Node.js, Express, MongoDB', link: 'https://github.com/isaacokubi/hussein-mboya-tours', demo: 'https://hussein-mboya-tours.vercel.app', featured: true },
-    { title: 'Chatify', category: 'Communication app', description: 'A real-time communication app concept focused on conversations, context-aware memories, and message expiry, with a Flutter client and API backend.', stack: 'Flutter, Dart, Node.js, Socket.IO, MongoDB', link: 'https://github.com/isaacokubi/chatify', demo: '', featured: true },
-    { title: 'BookHub', category: 'Book marketplace', description: 'A book discovery and selling platform concept with store experiences, product browsing, cart and order flows, reviews, and M-Pesa payment workflows.', stack: 'JavaScript, React, Node.js, MongoDB', link: 'https://github.com/isaacokubi/bookhub', demo: 'https://bookhub-swart.vercel.app', featured: true },
+    { title: 'Coherent Tours', category: 'Business platform', description: 'A tour operations management platform concept covering tour catalogues, bookings, team assignments, finance workflows, and multi-tenant business operations.', stack: 'React, Node.js, Express, MongoDB', demo: 'https://hussein-mboya-tours.vercel.app', featured: true },
+    { title: 'Chatify', category: 'Communication app', description: 'A real-time communication app concept focused on conversations, context-aware memories, and message expiry, with a Flutter client and API backend.', stack: 'Flutter, Dart, Node.js, Socket.IO, MongoDB', demo: '', featured: true },
+    { title: 'BookHub', category: 'Book marketplace', description: 'A book discovery and selling platform concept with store experiences, product browsing, cart and order flows, reviews, and M-Pesa payment workflows.', stack: 'JavaScript, React, Node.js, MongoDB', demo: 'https://bookhub-swart.vercel.app', featured: true },
   ],
   education: [
     { qualification: 'Diploma in Software Development', institution: 'IST, Kenya', start: '', end: '', status: 'Completed', details: 'Coursework included web development, JavaScript, React, MERN stack, PHP, Laravel, Vue.js, and Flutter/Dart.' },
