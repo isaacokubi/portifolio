@@ -370,9 +370,7 @@ function App() {
       section('Selected Projects');
       data.projects.forEach(project => {
         const stack = clean(project.stack);
-        const knownSources = { 'Coherent Tours': 'https://github.com/isaacokubi/hussein-mboya-tours', Chatify: 'https://github.com/isaacokubi/chatify', BookHub: 'https://github.com/isaacokubi/bookhub' };
-        const sourceUrl = clean(project.sourceUrl) || knownSources[clean(project.title)] || '';
-        const links = [project.demo ? 'Live demo: ' + project.demo : '', sourceUrl ? 'Source code: ' + sourceUrl : ''].filter(Boolean).join(' | ');
+        const links = project.demo ? 'Live demo: ' + clean(project.demo) : '';
         entry(project.title, project.category, '', [clean(project.description), stack ? 'Technology: ' + stack : '', links].filter(Boolean).join('\n'));
       });
     }
@@ -501,7 +499,7 @@ function App() {
         <SectionHeading number="03" eyebrow="SELECTED PROJECTS" title={<>A few things I've<br /><span className="muted-heading">been building.</span></>} detail="Projects are where problem-solving meets practice. Open a live demo when one is available." />
         <div className="project-grid">{featuredProjects.map((project, index) => <article className={cx('project-card', index === 0 && 'project-featured')} key={project.title}>
           <div className={cx('project-art', `project-art-${index % 3}`)}>{project.image && <img className="project-cover-image" src={project.image} alt={project.title + ' project preview'} loading="lazy" />}<div className="project-art-top"><span>0{index + 1} / PROJECT</span><span className="art-spark"><ArrowUpRight size={20} /></span></div><div className="project-graphic"><div className="graphic-window"><div className="graphic-lines"><i /><i /><i /></div><div className="graphic-panel"><span /><span /><span /></div><div className="graphic-base" /></div><div className="graphic-orb" /></div><span className="project-category">{project.category}</span></div>
-          <div className="project-info"><div className="project-title-row"><h3>{project.title}</h3><span className="project-index">0{index + 1}</span></div><p>{project.description}</p><div className="stack-list">{(project.stack || '').split(',').map(s => s.trim()).filter(Boolean).map(s => <span key={s}>{s}</span>)}</div><div className="project-links">{project.demo && <a href={project.demo} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Live demo <ArrowUpRight size={14} /></a>}{({ 'Coherent Tours': 'https://github.com/isaacokubi/hussein-mboya-tours', Chatify: 'https://github.com/isaacokubi/chatify', BookHub: 'https://github.com/isaacokubi/bookhub' })[project.title] && <a href={({ 'Coherent Tours': 'https://github.com/isaacokubi/hussein-mboya-tours', Chatify: 'https://github.com/isaacokubi/chatify', BookHub: 'https://github.com/isaacokubi/bookhub' })[project.title]} target="_blank" rel="noreferrer"><Github size={15} /> Source code <ArrowUpRight size={14} /></a>}</div></div>
+          <div className="project-info"><div className="project-title-row"><h3>{project.title}</h3><span className="project-index">0{index + 1}</span></div><p>{project.description}</p><div className="stack-list">{(project.stack || '').split(',').map(s => s.trim()).filter(Boolean).map(s => <span key={s}>{s}</span>)}</div><div className="project-links">{project.demo && <a href={project.demo} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Live demo <ArrowUpRight size={14} /></a>}</div></div>
         </article>)}
         {featuredProjects.length === 0 && <div className="empty-state">Your featured projects will appear here. Use <strong>Edit portfolio</strong> to add and feature projects.</div>}</div>
       </section>
