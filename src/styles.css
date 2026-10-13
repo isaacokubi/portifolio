@@ -244,7 +244,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   background: linear-gradient(145deg, rgba(26,43,70,.98), rgba(7,13,26,.98));
   box-shadow: 0 24px 70px rgba(0,0,0,.42), 0 0 35px rgba(121,227,236,.14), 0 0 0 8px rgba(121,227,236,.025);
 }
-.portrait-image > img { object-fit: cover; object-position: center 20%; }
+.portrait-image > img { object-fit: cover; object-position: center top; }
 .portrait-ring { border-radius: 30px; }
 .portrait-ring-one { inset: 2% 1%; transform: rotate(-3deg); border-color: rgba(121,227,236,.24); }
 .portrait-ring-two { inset: 5% -1%; transform: rotate(3deg); border-color: rgba(201,244,119,.19); }
