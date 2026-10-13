@@ -160,7 +160,7 @@ function App() {
           <h1>I build digital<br /><span className="gradient-text">things that matter.</span></h1>
           <p className="hero-description">{p.headline} {p.about}</p>
           <div className="hero-actions">
-            <a className="button button-primary button-large" href="#work">Explore my work <ArrowDownRight size={18} /></a>
+            <a className="button button-primary button-large" href="#work" onClick={event => { event.preventDefault(); navigateTo("work"); }}>Explore my work <ArrowDownRight size={18} /></a>
             <a className="button button-outline button-large" href={contactHref}><Mail size={17} /> Get in touch</a>
           </div>
           <div className="hero-meta"><span><MapPin size={15} /> {p.location || 'Available worldwide'}</span><span><Code2 size={15} /> {p.yearsExperience || 'Software development'}</span></div>
@@ -176,7 +176,7 @@ function App() {
           <div className="floating-card card-bottom"><span className="mini-bars"><i /><i /><i /><i /><i /></span><span>Ideas → Impact</span></div>
           <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
         </div>
-        <a href="#about" className="scroll-cue"><span className="scroll-wheel" /> Scroll to explore <ArrowDown size={14} /></a>
+        <a href="#about" className="scroll-cue" onClick={event => { event.preventDefault(); navigateTo("about"); }}><span className="scroll-wheel" /> Scroll to explore <ArrowDown size={14} /></a>
       </section>
 
       <section id="about" className={cx('section-wrap section-block', currentPage !== 'about' && 'page-hidden')}>
@@ -230,7 +230,7 @@ function App() {
       </section>
     </main>
 
-    <footer className="site-footer"><a className="footer-brand" href="#home">io.</a><p>Designed with curiosity. Built with care.</p><span>© {new Date().getFullYear()} {p.name}. All rights reserved.</span><a href="#home" className="back-top">Back to top <ArrowUpRight size={14} /></a></footer>
+    <footer className="site-footer"><a className="footer-brand" href="#home" onClick={event => { event.preventDefault(); navigateTo("home"); }}>io.</a><p>Designed with curiosity. Built with care.</p><span>© {new Date().getFullYear()} {p.name}. All rights reserved.</span><a href="#home" className="back-top" onClick={event => { event.preventDefault(); navigateTo("home"); }}>Back to top <ArrowUpRight size={14} /></a></footer>
 
     {editing && draft && <div className="editor-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) closeEditor(); }}>
       <section className="editor-panel" role="dialog" aria-modal="true" aria-labelledby="editor-title">
