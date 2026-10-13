@@ -191,7 +191,7 @@ function App() {
   const handleCredentialChange = async event => {
     event.preventDefault();
     setAuthError('');
-    if (!accountForm.email.trim() || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(accountForm.email.trim())) {
+    if (!accountForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(accountForm.email.trim())) {
       setAuthError('Enter a valid email address.');
       return;
     }
