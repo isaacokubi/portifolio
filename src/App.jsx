@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDown, ArrowDownRight, ArrowRight, ArrowUpRight, BriefcaseBusiness, Check,
-  ChevronDown, Code2, Download, ExternalLink, FileJson, Github, GraduationCap,
+  Code2, Download, ExternalLink, FileJson, GraduationCap,
   HeartHandshake, Layers3, Mail, MapPin, Menu, MessageCircle, Pencil, Plus,
   Send, Sparkles, Trash2, X, Upload, Globe, Linkedin, Phone, Save, RotateCcw,
 } from 'lucide-react';
@@ -31,6 +31,7 @@ function loadData() {
       ...starterData, ...parsed,
       profile: { ...starterData.profile, ...(parsed.profile || {}) },
       links: { ...starterData.links, ...(parsed.links || {}) },
+      projects: (Array.isArray(parsed.projects) ? parsed.projects : starterData.projects).map(({ link, ...project }) => project),
     };
   } catch {
     return starterData;
@@ -110,7 +111,7 @@ function App() {
     try {
       const parsed = JSON.parse(await file.text());
       if (!parsed.profile || !Array.isArray(parsed.skills) || !Array.isArray(parsed.projects)) throw new Error('That file does not look like a portfolio backup.');
-      setData({ ...starterData, ...parsed, profile: { ...starterData.profile, ...parsed.profile }, links: { ...starterData.links, ...(parsed.links || {}) } });
+      setData({ ...starterData, ...parsed, profile: { ...starterData.profile, ...parsed.profile }, links: { ...starterData.links, ...(parsed.links || {}) }, projects: parsed.projects.map(({ link, ...project }) => project) });
       setNotice('Portfolio backup imported successfully.');
     } catch (error) { setNotice(error.message || 'Could not import that JSON file.'); }
     event.target.value = '';
@@ -122,7 +123,7 @@ function App() {
       'PROFILE', p.about, '', 'SKILLS', ...data.skills.map(s => `- ${s.name} (${s.group}; ${s.level})`),
       '', 'EDUCATION', ...data.education.map(e => `- ${e.qualification} — ${e.institution} (${e.start}–${e.end || e.status})\n  ${e.details}`),
       '', 'EXPERIENCE', ...data.experience.map(e => `- ${e.role} — ${e.company} (${e.start}–${e.end})\n  ${e.details}`),
-      '', 'PROJECTS', ...data.projects.map(project => `- ${project.title}: ${project.description}\n  Stack: ${project.stack}\n  GitHub: ${project.link}\n  Demo: ${project.demo}`),
+      '', 'PROJECTS', ...data.projects.map(project => `- ${project.title}: ${project.description}\n  Stack: ${project.stack}\n  Live demo: ${project.demo || 'Not available'}`),
       '', 'CERTIFICATIONS', ...data.certifications.map(c => `- ${c.name} — ${c.issuer} (${c.date})`),
       '', 'LINKS', ...Object.entries(data.links).map(([k, v]) => `${k}: ${v}`),
     ].join('\n');
@@ -200,13 +201,12 @@ function App() {
       </section>
 
       <section id="work" className={cx('section-wrap section-block', currentPage !== 'work' && 'page-hidden')}>
-        <SectionHeading number="03" eyebrow="SELECTED PROJECTS" title={<>A few things I've<br /><span className="muted-heading">been building.</span></>} detail="Projects are where problem-solving meets practice. Explore the code or open a live demo when one is available." />
+        <SectionHeading number="03" eyebrow="SELECTED PROJECTS" title={<>A few things I've<br /><span className="muted-heading">been building.</span></>} detail="Projects are where problem-solving meets practice. Open a live demo when one is available." />
         <div className="project-grid">{featuredProjects.map((project, index) => <article className={cx('project-card', index === 0 && 'project-featured')} key={project.title}>
           <div className={cx('project-art', `project-art-${index % 3}`)}><div className="project-art-top"><span>0{index + 1} / PROJECT</span><span className="art-spark"><ArrowUpRight size={20} /></span></div><div className="project-graphic"><div className="graphic-window"><div className="graphic-lines"><i /><i /><i /></div><div className="graphic-panel"><span /><span /><span /></div><div className="graphic-base" /></div><div className="graphic-orb" /></div><span className="project-category">{project.category}</span></div>
-          <div className="project-info"><div className="project-title-row"><h3>{project.title}</h3><span className="project-index">0{index + 1}</span></div><p>{project.description}</p><div className="stack-list">{(project.stack || '').split(',').map(s => s.trim()).filter(Boolean).map(s => <span key={s}>{s}</span>)}</div><div className="project-links">{project.link && <a href={project.link} target="_blank" rel="noreferrer"><Github size={15} /> Source code <ArrowUpRight size={14} /></a>}{project.demo && <a href={project.demo} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Live demo <ArrowUpRight size={14} /></a>}</div></div>
+          <div className="project-info"><div className="project-title-row"><h3>{project.title}</h3><span className="project-index">0{index + 1}</span></div><p>{project.description}</p><div className="stack-list">{(project.stack || '').split(',').map(s => s.trim()).filter(Boolean).map(s => <span key={s}>{s}</span>)}</div><div className="project-links">{project.demo && <a href={project.demo} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Live demo <ArrowUpRight size={14} /></a>}</div></div>
         </article>)}
         {featuredProjects.length === 0 && <div className="empty-state">Your featured projects will appear here. Use <strong>Edit portfolio</strong> to add and feature projects.</div>}</div>
-        <div className="all-projects-note"><span className="status-dot" /> More experiments and code live on GitHub. <a href={data.links.github || 'https://github.com'} target="_blank" rel="noreferrer">Visit my GitHub <ArrowUpRight size={14} /></a></div>
       </section>
 
       <section id="journey" className={cx('section-wrap section-block', currentPage !== 'journey' && 'page-hidden')}>
@@ -226,7 +226,7 @@ function App() {
       <section id="contact" className={cx('section-wrap contact-section', currentPage !== 'contact' && 'page-hidden')}>
         <div className="contact-glow" />
         <div className="contact-content"><span className="eyebrow">06 / YOUR NEXT IDEA STARTS HERE</span><h2>Have a good problem?<br /><span className="gradient-text">Let's solve it.</span></h2><p>Have a project, opportunity, or collaboration in mind? Tell me what you're working on and let's talk through the possibilities.</p><div className="contact-actions"><a className="button button-primary button-large" href={contactHref}><Mail size={17} /> Send me an email <ArrowUpRight size={17} /></a><button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Export resume (TXT)</button></div><div className="contact-details">{p.email && <span><Mail size={15} /> {p.email}</span>}{p.phone && <span><Phone size={15} /> {p.phone}</span>}<span><MapPin size={15} /> {p.location}</span></div></div>
-        <div className="contact-side"><div className="contact-orbit"><div className="orbit-core"><Code2 size={36} /></div><span className="orbit-label orbit-label-one">IDEA</span><span className="orbit-label orbit-label-two">BUILD</span><span className="orbit-label orbit-label-three">IMPACT</span></div><div className="social-links"><IconLink href={data.links.github} label="GitHub"><Github /></IconLink><IconLink href={data.links.linkedin} label="LinkedIn"><Linkedin /></IconLink><IconLink href={data.links.website} label="Website"><Globe /></IconLink><IconLink href={contactHref} label="Email"><Mail /></IconLink></div></div>
+        <div className="contact-side"><div className="contact-orbit"><div className="orbit-core"><Code2 size={36} /></div><span className="orbit-label orbit-label-one">IDEA</span><span className="orbit-label orbit-label-two">BUILD</span><span className="orbit-label orbit-label-three">IMPACT</span></div><div className="social-links"><IconLink href={data.links.linkedin} label="LinkedIn"><Linkedin /></IconLink><IconLink href={data.links.website} label="Website"><Globe /></IconLink><IconLink href={contactHref} label="Email"><Mail /></IconLink></div></div>
       </section>
     </main>
 
@@ -250,7 +250,7 @@ function App() {
             <Field label="Short headline" value={draft.profile.headline} onChange={v => updateProfile('headline', v)} wide />
             <Field label="About me" value={draft.profile.about} onChange={v => updateProfile('about', v)} multiline wide />
           </div>}
-          {activeTab === 'links' && <div className="editor-form-grid">{[['github','GitHub URL'],['linkedin','LinkedIn URL'],['website','Personal website URL'],['email','Public contact email']].map(([key, label]) => <Field key={key} label={label} value={draft.links[key] || ''} onChange={v => updateLink(key, v)} />)}<p className="editor-help wide">Use full https:// URLs for social profiles. Your email address powers the contact buttons.</p></div>}
+          {activeTab === 'links' && <div className="editor-form-grid">{[['linkedin','LinkedIn URL'],['website','Personal website URL'],['email','Public contact email']].map(([key, label]) => <Field key={key} label={label} value={draft.links[key] || ''} onChange={v => updateLink(key, v)} />)}<p className="editor-help wide">Use full https:// URLs for your LinkedIn or personal website. Project cards only show live-demo links; source-code links are not displayed.</p></div>}
           {['skills','projects','education','experience','certifications','services'].includes(activeTab) && <div className="editor-list-area">
             <div className="editor-list-head"><div><h3>{sectionLabels[activeTab] || 'Certifications'}</h3><p>{draft[activeTab].length} saved {activeTab} entries</p></div><button className="button button-quiet" onClick={() => { setNewEntry(prev => ({ ...prev, [activeTab]: { ...emptyEntry[activeTab] } })); setEditIndex('new'); }}><Plus size={16} /> Add entry</button></div>
             {editIndex === 'new' && <EntryForm type={activeTab} value={newEntry[activeTab] || emptyEntry[activeTab]} onChange={v => setNewEntry(prev => ({ ...prev, [activeTab]: v }))} onSave={() => { addEntry(activeTab); setEditIndex(null); }} onCancel={() => setEditIndex(null)} />}
@@ -274,7 +274,7 @@ function Field({ label, value, onChange, type = 'text', multiline = false, wide 
 function EntryForm({ type, value, onChange, onSave, onCancel }) {
   const fields = {
     skills: [['name','Skill name'],['level','Level'],['group','Category']],
-    projects: [['title','Project title'],['category','Category'],['description','Description','textarea'],['stack','Tech stack (comma separated)'],['link','Source code URL'],['demo','Live demo URL'],['featured','Show on portfolio','checkbox']],
+    projects: [['title','Project title'],['category','Category'],['description','Description','textarea'],['stack','Tech stack (comma separated)'],['demo','Live demo URL (optional)'],['featured','Show on portfolio','checkbox']],
     education: [['qualification','Qualification'],['institution','Institution'],['start','Start date/year'],['end','End date/year'],['status','Status'],['details','Details','textarea']],
     experience: [['role','Role / position'],['company','Company / organisation'],['start','Start date/year'],['end','End date/year or Present'],['location','Location'],['details','Responsibilities / achievements','textarea']],
     certifications: [['name','Certificate / course name'],['issuer','Issuing organisation'],['date','Date earned'],['credential','Credential URL']],
