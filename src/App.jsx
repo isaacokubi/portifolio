@@ -6,6 +6,7 @@ import {
   Send, Sparkles, Trash2, X, Upload, Globe, Linkedin, Phone, Save, RotateCcw, LogIn, LogOut, LockKeyhole, ShieldCheck,
 } from 'lucide-react';
 import { starterData } from './data.js';
+import { jsPDF } from 'jspdf';
 
 const STORAGE_KEY = 'isaac-okubi-portfolio-v1';
 // This static portfolio has no server-side identity provider. These browser-only credentials
@@ -264,20 +265,160 @@ function App() {
     } catch (error) { setNotice(error.message || 'Could not import that JSON file.'); }
     event.target.value = '';
   };
+  // Build a readable, multi-page PDF resume from the currently published portfolio data.
+  // The PDF is generated in the browser, so no profile details are sent to a third-party service.
   const downloadResume = () => {
-    const p = data.profile;
-    const text = [
-      p.name, p.role, p.location, p.email, p.phone, '',
-      'PROFILE', p.about, '', 'SKILLS', ...data.skills.map(s => `- ${s.name} (${s.group}; ${s.level})`),
-      '', 'EDUCATION', ...data.education.map(e => `- ${e.qualification} — ${e.institution} (${e.start}–${e.end || e.status})\n  ${e.details}`),
-      '', 'EXPERIENCE', ...data.experience.map(e => `- ${e.role} — ${e.company} (${e.start}–${e.end})\n  ${e.details}`),
-      '', 'PROJECTS', ...data.projects.map(project => `- ${project.title}: ${project.description}\n  Stack: ${project.stack}\n  Live demo: ${project.demo || 'Not available'}`),
-      '', 'CERTIFICATIONS', ...data.certifications.map(c => `- ${c.name} — ${c.issuer} (${c.date})`),
-      '', 'LINKS', ...Object.entries(data.links).map(([k, v]) => `${k}: ${v}`),
-    ].join('\n');
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob); const a = document.createElement('a');
-    a.href = url; a.download = `${p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-resume.txt`; a.click(); URL.revokeObjectURL(url);
+    const profile = data.profile || {};
+    const clean = value => String(value ?? '').trim();
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 18;
+    const contentWidth = pageWidth - margin * 2;
+    const bottomLimit = pageHeight - 19;
+    let y = 0;
+
+    const ensureSpace = (height = 12) => {
+      if (y + height <= bottomLimit) return;
+      doc.addPage();
+      y = 20;
+    };
+    const paragraph = (value, options = {}) => {
+      const text = clean(value);
+      if (!text) return;
+      const fontSize = options.fontSize || 9.5;
+      const lineHeight = options.lineHeight || fontSize * 0.48;
+      doc.setFont('helvetica', options.bold ? 'bold' : 'normal');
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...(options.color || [55, 67, 83]));
+      const lines = doc.splitTextToSize(text, contentWidth - (options.indent || 0));
+      ensureSpace(lines.length * lineHeight + (options.gapAfter ?? 2));
+      doc.text(lines, margin + (options.indent || 0), y);
+      y += lines.length * lineHeight + (options.gapAfter ?? 2);
+    };
+    const section = title => {
+      ensureSpace(15);
+      y += 3;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(19, 45, 63);
+      doc.text(title.toUpperCase(), margin, y);
+      y += 2.2;
+      doc.setDrawColor(95, 211, 218);
+      doc.setLineWidth(0.8);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 6;
+    };
+    const entry = (heading, subheading, date, details) => {
+      ensureSpace(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(23, 39, 57);
+      const headingLines = doc.splitTextToSize(clean(heading), contentWidth);
+      doc.text(headingLines, margin, y);
+      y += headingLines.length * 4.8;
+      const meta = [clean(subheading), clean(date)].filter(Boolean).join('  |  ');
+      if (meta) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(17, 132, 148);
+        const metaLines = doc.splitTextToSize(meta, contentWidth);
+        ensureSpace(metaLines.length * 4.2 + 2);
+        doc.text(metaLines, margin, y);
+        y += metaLines.length * 4.2 + 1.5;
+      }
+      if (clean(details)) paragraph(details, { fontSize: 9, lineHeight: 4.5, gapAfter: 3 });
+    };
+
+    // Cover header uses a restrained navy/cyan palette and keeps contact details easy to scan.
+    doc.setFillColor(12, 26, 43);
+    doc.rect(0, 0, pageWidth, 49, 'F');
+    doc.setFillColor(215, 255, 101);
+    doc.rect(0, 48, pageWidth, 1.5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(23);
+    doc.setTextColor(250, 252, 255);
+    doc.text(clean(profile.name) || 'Isaac Okubi', margin, 18);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(215, 255, 101);
+    doc.text(clean(profile.role) || 'Software Developer', margin, 26);
+    const contactLine = [profile.location, profile.email, profile.phone].map(clean).filter(Boolean).join('  |  ');
+    doc.setFontSize(8.5);
+    doc.setTextColor(220, 231, 242);
+    const contactLines = doc.splitTextToSize(contactLine, contentWidth);
+    doc.text(contactLines, margin, 35);
+    y = 59;
+
+    section('Professional Profile');
+    paragraph(profile.headline, { fontSize: 10, bold: true, color: [28, 91, 105], gapAfter: 3 });
+    paragraph(profile.about || 'Software developer focused on practical, user-centred digital products.', { fontSize: 9.5, lineHeight: 4.8, gapAfter: 2 });
+
+    const skillGroups = (data.skills || []).reduce((groups, skill) => {
+      const group = clean(skill.group) || 'Other';
+      (groups[group] ||= []).push(clean(skill.name));
+      return groups;
+    }, {});
+    if (Object.keys(skillGroups).length) {
+      section('Technical Skills');
+      Object.entries(skillGroups).forEach(([group, skills]) => {
+        paragraph(group + ': ' + skills.filter(Boolean).join(', '), { fontSize: 9, lineHeight: 4.5, gapAfter: 2 });
+      });
+    }
+
+    if ((data.projects || []).length) {
+      section('Selected Projects');
+      data.projects.forEach(project => {
+        const stack = clean(project.stack);
+        const links = [project.demo ? 'Live demo: ' + project.demo : '', project.sourceUrl ? 'Source: ' + project.sourceUrl : ''].filter(Boolean).join(' | ');
+        entry(project.title, project.category, '', [clean(project.description), stack ? 'Technology: ' + stack : '', links].filter(Boolean).join('\n'));
+      });
+    }
+
+    if ((data.experience || []).length) {
+      section('Experience');
+      data.experience.forEach(item => {
+        const date = [item.start, item.end].map(clean).filter(Boolean).join(' - ');
+        entry(item.role, [item.company, item.location].map(clean).filter(Boolean).join(' | '), date, item.details);
+      });
+    }
+
+    if ((data.education || []).length) {
+      section('Education');
+      data.education.forEach(item => {
+        const date = [item.start, item.end || item.status].map(clean).filter(Boolean).join(' - ');
+        entry(item.qualification, item.institution, date, item.details);
+      });
+    }
+
+    if ((data.certifications || []).length) {
+      section('Certifications');
+      data.certifications.forEach(item => entry(item.name, item.issuer, item.date, item.details));
+    }
+
+    const links = Object.entries(data.links || {}).filter(([, value]) => clean(value));
+    if (links.length || clean(profile.resumeUrl)) {
+      section('Professional Links');
+      links.forEach(([label, value]) => paragraph(label.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase()) + ': ' + clean(value), { fontSize: 9, color: [17, 105, 124], gapAfter: 2 }));
+      if (clean(profile.resumeUrl)) paragraph('Portfolio / resume: ' + clean(profile.resumeUrl), { fontSize: 9, color: [17, 105, 124], gapAfter: 2 });
+    }
+
+    // Add consistent page numbering after all pages have been laid out.
+    const pageCount = doc.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page += 1) {
+      doc.setPage(page);
+      doc.setDrawColor(220, 228, 236);
+      doc.setLineWidth(0.3);
+      doc.line(margin, pageHeight - 13, pageWidth - margin, pageHeight - 13);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(112, 126, 142);
+      doc.text((clean(profile.name) || 'Isaac Okubi') + '  |  Resume', margin, pageHeight - 8);
+      doc.text('Page ' + page + ' of ' + pageCount, pageWidth - margin, pageHeight - 8, { align: 'right' });
+    }
+
+    const filename = (clean(profile.name) || 'isaac-okubi').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'isaac-okubi';
+    doc.save(filename + '-resume.pdf');
   };
 
   const nav = [['Home', 'home'], ['About', 'about'], ['Skills', 'skills'], ['Projects', 'work'], ['Journey', 'journey'], ['Services', 'services'], ['Contact', 'contact']];
@@ -379,7 +520,7 @@ function App() {
 
       <section id="contact" className={cx('section-wrap contact-section', currentPage !== 'contact' && 'page-hidden')}>
         <div className="contact-glow" />
-        <div className="contact-content"><span className="eyebrow">06 / YOUR NEXT IDEA STARTS HERE</span><h2>Have a good problem?<br /><span className="gradient-text">Let's solve it.</span></h2><p>Have a project, opportunity, or collaboration in mind? Tell me what you're working on and let's talk through the possibilities.</p><div className="contact-actions"><a className="button button-primary button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); openEditor(); } }}><Mail size={17} /> {email ? 'Send me an email' : 'Add contact email'} <ArrowUpRight size={17} /></a>{p.resumeUrl && <a className="button button-outline button-large" href={p.resumeUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /> View resume <ArrowUpRight size={17} /></a>}<button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Export resume (TXT)</button></div><div className="contact-details">{p.email && <span><Mail size={15} /> {p.email}</span>}{p.phone && <span><Phone size={15} /> {p.phone}</span>}<span><MapPin size={15} /> {p.location}</span></div></div>
+        <div className="contact-content"><span className="eyebrow">06 / YOUR NEXT IDEA STARTS HERE</span><h2>Have a good problem?<br /><span className="gradient-text">Let's solve it.</span></h2><p>Have a project, opportunity, or collaboration in mind? Tell me what you're working on and let's talk through the possibilities.</p><div className="contact-actions"><a className="button button-primary button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); openEditor(); } }}><Mail size={17} /> {email ? 'Send me an email' : 'Add contact email'} <ArrowUpRight size={17} /></a>{p.resumeUrl && <a className="button button-outline button-large" href={p.resumeUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /> View resume <ArrowUpRight size={17} /></a>}<button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Download resume (PDF)</button></div><div className="contact-details">{p.email && <span><Mail size={15} /> {p.email}</span>}{p.phone && <span><Phone size={15} /> {p.phone}</span>}<span><MapPin size={15} /> {p.location}</span></div></div>
         <div className="contact-side"><div className="contact-orbit"><div className="orbit-core"><Code2 size={36} /></div><span className="orbit-label orbit-label-one">IDEA</span><span className="orbit-label orbit-label-two">BUILD</span><span className="orbit-label orbit-label-three">IMPACT</span></div><div className="social-links"><IconLink href={data.links.linkedin} label="LinkedIn"><Linkedin /></IconLink><IconLink href={data.links.github} label="GitHub profile"><Github /></IconLink><IconLink href={data.links.website} label="Website"><Globe /></IconLink><IconLink href={contactHref} label="Email"><Mail /></IconLink></div></div>
       </section>
     </main>
