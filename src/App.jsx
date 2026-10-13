@@ -148,24 +148,41 @@ function SectionHeading({ eyebrow, title, detail, number }) {
 
 // Main page component: owns portfolio state, editor/authentication state, and page interactions.
 function App() {
+  // The portfolio content currently shown to visitors, restored from browser storage on first render.
   const [data, setData] = useState(loadData);
+  // Controls whether the portfolio editor panel is open.
   const [editing, setEditing] = useState(false);
+  // Tracks whether this browser session has passed the local editor login check.
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Chooses which account dialog to show (for example login or account settings), or hides it when empty.
   const [authView, setAuthView] = useState('');
+  // Current locally stored editor email and password hash.
   const [adminConfig, setAdminConfig] = useState(loadAdminConfig);
+  // Controlled email input value in the login form.
   const [loginEmail, setLoginEmail] = useState('');
+  // Controlled password input value; only its hash is compared with the stored hash.
   const [loginPassword, setLoginPassword] = useState('');
+  // Validation or login error displayed inside the active account dialog.
   const [authError, setAuthError] = useState('');
+  // Values used when the editor owner changes their login email or password.
   const [accountForm, setAccountForm] = useState({ currentPassword: '', email: '', newPassword: '', confirmPassword: '' });
+  // Toggles the small-screen navigation menu.
   const [mobileOpen, setMobileOpen] = useState(false);
   // Track the visible portfolio page so the navbar behaves like page navigation.
   const [currentPage, setCurrentPage] = useState('home');
+  // Selects which category of information is currently open in the editor.
   const [activeTab, setActiveTab] = useState('profile');
+  // Temporary copy of the portfolio being edited; changes are not applied until Save is selected.
   const [draft, setDraft] = useState(null);
+  // Holds unsaved form values for new entries, keyed by content category.
   const [newEntry, setNewEntry] = useState({});
+  // Remembers the entry category selected by the reusable entry form.
   const [entryType, setEntryType] = useState('skills');
+  // Index of the list entry currently being edited, 'new' for a new item, or null for none.
   const [editIndex, setEditIndex] = useState(null);
+  // Short status message used for save, import, login, and storage feedback.
   const [notice, setNotice] = useState('');
+  // Reference to the hidden JSON file picker so a visible button can open it.
   const fileInput = useRef(null);
 
   // Persist content changes after React updates the data state; storage failures are shown in the editor.
@@ -188,9 +205,11 @@ function App() {
     setEditing(true);
     setNotice('');
   };
+  // Discard the temporary draft and clear transient form state when the editor closes.
   const closeEditor = () => { setEditing(false); setDraft(null); setEditIndex(null); setNewEntry({}); };
   // Reset stale login errors and inputs whenever the sign-in dialog is opened.
   const openLogin = () => { setAuthView('login'); setAuthError(''); setLoginEmail(''); setLoginPassword(''); };
+  // Hide account dialogs and clear password fields so secrets are not left in form state.
   const closeAuth = () => { setAuthView(''); setAuthError(''); setLoginPassword(''); setAccountForm({ currentPassword: '', email: adminConfig.email, newPassword: '', confirmPassword: '' }); };
   // Authenticate the editor using the saved email and a hash comparison; prevent normal form submission.
   const handleLogin = async event => {
@@ -265,8 +284,10 @@ function App() {
   }));
   // Add a section-specific entry using the blank template plus values entered in the form.
   const addEntry = (type) => {
+    // Start with the correct fields for this category, then overlay the user's entered values.
     const item = { ...emptyEntry[type], ...(newEntry[type] || {}) };
     const labelField = type === 'skills' ? 'name' : type === 'projects' ? 'title' : type === 'education' ? 'qualification' : type === 'experience' ? 'role' : 'title';
+    // Reject entries without a basic identifying label so the editor does not create blank rows.
     if (!item[labelField] && !item.name) { setNotice('Add a name or title before saving this entry.'); return; }
     setDraft(prev => ({ ...prev, [type]: [...prev[type], item] }));
     setNewEntry(prev => ({ ...prev, [type]: { ...emptyEntry[type] } }));
@@ -277,7 +298,9 @@ function App() {
 
   // Package the current portfolio as formatted JSON and trigger a browser download for backup/migration.
   const exportData = () => {
+    // Convert the data object into a downloadable JSON file with indentation for readability.
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    // Create a temporary browser URL that points to the generated JSON file.
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'isaac-okubi-portfolio.json'; a.click();
     URL.revokeObjectURL(url);
@@ -287,7 +310,9 @@ function App() {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
+      // Read the file text and parse it into a JavaScript object before trusting its structure.
       const parsed = JSON.parse(await file.text());
+      // Check for required portfolio fields so unrelated JSON files are not imported by mistake.
       if (!parsed.profile || !Array.isArray(parsed.skills) || !Array.isArray(parsed.projects)) throw new Error('That file does not look like a portfolio backup.');
       setData({ ...starterData, ...parsed, profile: { ...starterData.profile, ...parsed.profile }, links: { ...starterData.links, ...(parsed.links || {}) }, projects: parsed.projects.map(({ link, ...project }) => project) });
       setNotice('Portfolio backup imported successfully.');
@@ -300,7 +325,9 @@ function App() {
   const downloadResume = () => {
     const profile = data.profile || {};
     const clean = value => String(value ?? '').trim();
+    // Initialise jsPDF in A4 portrait mode, using millimetres for predictable page layout.
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    // Read the actual page dimensions so text and footer positions adapt to the selected PDF page size.
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 18;
@@ -388,6 +415,7 @@ function App() {
     paragraph(profile.headline, { fontSize: 10, bold: true, color: [28, 91, 105], gapAfter: 3 });
     paragraph(profile.about || 'Software developer focused on practical, user-centred digital products.', { fontSize: 9.5, lineHeight: 4.8, gapAfter: 2 });
 
+    // Group skills by category so the résumé lists related technologies together.
     const skillGroups = (data.skills || []).reduce((groups, skill) => {
       const group = clean(skill.group) || 'Other';
       (groups[group] ||= []).push(clean(skill.name));
@@ -400,6 +428,7 @@ function App() {
       });
     }
 
+    // Add each project only when there is project data to show.
     if ((data.projects || []).length) {
       section('Selected Projects');
       data.projects.forEach(project => {
@@ -409,6 +438,7 @@ function App() {
       });
     }
 
+    // Include the experience section only when at least one entry exists.
     if ((data.experience || []).length) {
       section('Experience');
       data.experience.forEach(item => {
@@ -417,6 +447,7 @@ function App() {
       });
     }
 
+    // Include education only when the profile contains education records.
     if ((data.education || []).length) {
       section('Education');
       data.education.forEach(item => {
@@ -425,6 +456,7 @@ function App() {
       });
     }
 
+    // Avoid an empty certifications heading when there are no certificates to display.
     if ((data.certifications || []).length) {
       section('Certifications');
       data.certifications.forEach(item => entry(item.name, item.issuer, item.date, item.details));
@@ -458,6 +490,7 @@ function App() {
 
   // Navigation labels map to the internal page identifiers used by the page-switching handler.
   const nav = [['Home', 'home'], ['About', 'about'], ['Skills', 'skills'], ['Projects', 'work'], ['Journey', 'journey'], ['Services', 'services'], ['Contact', 'contact']];
+  // Switch to the selected portfolio page, close mobile navigation, and return to the top smoothly.
   const navigateTo = (page) => { setCurrentPage(page); setMobileOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const p = data.profile;
   const email = data.links.email || p.email;
