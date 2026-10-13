@@ -8,12 +8,15 @@ import {
 import { starterData } from './data.js';
 import { jsPDF } from 'jspdf';
 
+// Stable localStorage key used to save editable portfolio content in this browser.
 const STORAGE_KEY = 'isaac-okubi-portfolio-v1';
 // This static portfolio has no server-side identity provider. These browser-only credentials
 // gate the editor UI on this device; they are not a substitute for server-side authentication.
+// Separate storage key for the editor account settings (email and password hash).
 const ADMIN_CONFIG_KEY = 'isaac-okubi-portfolio-admin-v1';
 const DEFAULT_ADMIN_EMAIL = 'izobrack3@gmail.com';
 const DEFAULT_ADMIN_PASSWORD_HASH = 'a22e21530e72a903329e4b265ba8d3a815a6a0ded071495c6d20fec843417fe2';
+// Read the editor account settings safely; malformed or missing storage falls back to defaults.
 function loadAdminConfig() {
   try {
     const saved = JSON.parse(localStorage.getItem(ADMIN_CONFIG_KEY) || 'null');
@@ -21,10 +24,12 @@ function loadAdminConfig() {
   } catch { /* Start with the default account if saved settings are unreadable. */ }
   return { email: DEFAULT_ADMIN_EMAIL, passwordHash: DEFAULT_ADMIN_PASSWORD_HASH };
 }
+// Hash the password before comparing or storing it, so the raw password is not saved in localStorage.
 async function hashPassword(password) {
   const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
 }
+// Blank templates ensure each new editor entry starts with the fields expected by its section.
 const emptyEntry = {
   skills: { name: '', level: 'Intermediate', group: 'General' },
   projects: { title: '', category: 'Web application', description: '', stack: '', demo: '', image: '', featured: false },
@@ -33,12 +38,15 @@ const emptyEntry = {
   certifications: { name: '', issuer: '', date: '', credential: '' },
   services: { title: '', description: '', image: '' },
 };
+// Human-readable labels used when the editor displays the active content section.
 const sectionLabels = {
   skills: 'Skills', projects: 'Projects', education: 'Education',
   experience: 'Experience', certifications: 'Certifications', services: 'Services',
 };
+// Join CSS class names while ignoring empty values and false conditional classes.
 const cx = (...classes) => classes.filter(Boolean).join(' ');
 
+// Restore saved portfolio data and merge it with defaults so newly added fields still have values.
 function loadData() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -56,6 +64,7 @@ function loadData() {
 }
 
 
+// Validate and resize uploaded images before saving them as compact WebP data URLs in browser storage.
 function compressImage(file) {
   return new Promise((resolve, reject) => {
     if (!file || !file.type.startsWith('image/')) { reject(new Error('Choose a JPG, PNG, or WebP image.')); return; }
@@ -80,6 +89,7 @@ function compressImage(file) {
     reader.readAsDataURL(file);
   });
 }
+// Reusable image picker with preview, replacement/removal controls, and visible validation errors.
 function ImageUploadField({ label, value, onChange, wide = false }) {
   const [error, setError] = useState('');
   const inputRef = useRef(null);
@@ -101,6 +111,7 @@ function ImageUploadField({ label, value, onChange, wide = false }) {
     </div>
   </div>;
 }
+// Draw a lightweight inline SVG avatar and derive its initials from the displayed profile name.
 function ProfileAvatar({ name }) {
   const initials = (name || 'Developer').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase();
   return <div className="avatar-illustration" role="img" aria-label={name + ' profile illustration'}>
@@ -121,11 +132,13 @@ function ProfileAvatar({ name }) {
     </svg><span className="avatar-caption"><span className="status-dot" /> DIGITAL CRAFTSMAN</span>
   </div>;
 }
+// Render an accessible social/contact link only when a destination URL is provided.
 function IconLink({ href, label, children, className = '' }) {
   if (!href) return null;
   return <a href={href} aria-label={label} title={label} className={cx('icon-link', className)} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noreferrer' : undefined}>{children}</a>;
 }
 
+// Keep section titles consistent by sharing the eyebrow, heading, optional detail, and index layout.
 function SectionHeading({ eyebrow, title, detail, number }) {
   return <div className="section-heading">
     <div><span className="eyebrow">{number} / {eyebrow}</span><h2>{title}</h2></div>
@@ -133,27 +146,46 @@ function SectionHeading({ eyebrow, title, detail, number }) {
   </div>;
 }
 
+// Main page component: owns portfolio state, editor/authentication state, and page interactions.
 function App() {
+  // The portfolio content currently shown to visitors, restored from browser storage on first render.
   const [data, setData] = useState(loadData);
+  // Controls whether the portfolio editor panel is open.
   const [editing, setEditing] = useState(false);
+  // Tracks whether this browser session has passed the local editor login check.
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Chooses which account dialog to show (for example login or account settings), or hides it when empty.
   const [authView, setAuthView] = useState('');
+  // Current locally stored editor email and password hash.
   const [adminConfig, setAdminConfig] = useState(loadAdminConfig);
+  // Controlled email input value in the login form.
   const [loginEmail, setLoginEmail] = useState('');
+  // Controlled password input value; only its hash is compared with the stored hash.
   const [loginPassword, setLoginPassword] = useState('');
+  // Validation or login error displayed inside the active account dialog.
   const [authError, setAuthError] = useState('');
+  // Values used when the editor owner changes their login email or password.
   const [accountForm, setAccountForm] = useState({ currentPassword: '', email: '', newPassword: '', confirmPassword: '' });
+  // Toggles the small-screen navigation menu.
   const [mobileOpen, setMobileOpen] = useState(false);
   // Track the visible portfolio page so the navbar behaves like page navigation.
   const [currentPage, setCurrentPage] = useState('home');
+  // Selects which category of information is currently open in the editor.
   const [activeTab, setActiveTab] = useState('profile');
+  // Temporary copy of the portfolio being edited; changes are not applied until Save is selected.
   const [draft, setDraft] = useState(null);
+  // Holds unsaved form values for new entries, keyed by content category.
   const [newEntry, setNewEntry] = useState({});
+  // Remembers the entry category selected by the reusable entry form.
   const [entryType, setEntryType] = useState('skills');
+  // Index of the list entry currently being edited, 'new' for a new item, or null for none.
   const [editIndex, setEditIndex] = useState(null);
+  // Short status message used for save, import, login, and storage feedback.
   const [notice, setNotice] = useState('');
+  // Reference to the hidden JSON file picker so a visible button can open it.
   const fileInput = useRef(null);
 
+  // Persist content changes after React updates the data state; storage failures are shown in the editor.
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -163,17 +195,23 @@ function App() {
     }
   }, [data]);
 
+  // Derive featured projects and skill categories from data instead of maintaining duplicate state.
   const featuredProjects = useMemo(() => data.projects.filter(p => p.featured), [data.projects]);
   const allSkills = useMemo(() => [...new Set(data.skills.map(s => s.group || 'General'))], [data.skills]);
 
+  // Copy current content into a draft so Cancel can discard edits without changing the public page.
   const openEditor = () => {
     setDraft(JSON.parse(JSON.stringify(data)));
     setEditing(true);
     setNotice('');
   };
+  // Discard the temporary draft and clear transient form state when the editor closes.
   const closeEditor = () => { setEditing(false); setDraft(null); setEditIndex(null); setNewEntry({}); };
+  // Reset stale login errors and inputs whenever the sign-in dialog is opened.
   const openLogin = () => { setAuthView('login'); setAuthError(''); setLoginEmail(''); setLoginPassword(''); };
+  // Hide account dialogs and clear password fields so secrets are not left in form state.
   const closeAuth = () => { setAuthView(''); setAuthError(''); setLoginPassword(''); setAccountForm({ currentPassword: '', email: adminConfig.email, newPassword: '', confirmPassword: '' }); };
+  // Authenticate the editor using the saved email and a hash comparison; prevent normal form submission.
   const handleLogin = async event => {
     event.preventDefault();
     try {
@@ -189,6 +227,7 @@ function App() {
       setAuthError('Secure password checking is unavailable in this browser. Use HTTPS or localhost.');
     }
   };
+  // Validate the current password and new account fields before saving updated local credentials.
   const handleCredentialChange = async event => {
     event.preventDefault();
     setAuthError('');
@@ -220,12 +259,14 @@ function App() {
       setAuthError('Could not update credentials in this browser.');
     }
   };
+  // Close the editor and clear authentication-related state when the user signs out.
   const handleLogout = () => {
     closeEditor();
     setIsLoggedIn(false);
     closeAuth();
     setNotice('You have been logged out.');
   };
+  // Commit the edited draft into the main React state; the persistence effect saves it locally afterward.
   const saveDraft = () => {
     setData(draft);
     setEditing(false);
@@ -233,44 +274,58 @@ function App() {
     setNotice('Changes saved in this browser. They are not published to other visitors automatically.');
     window.setTimeout(() => setNotice(''), 3500);
   };
+  // Update one profile field immutably so React receives a new draft object.
   const updateProfile = (field, value) => setDraft(prev => ({ ...prev, profile: { ...prev.profile, [field]: value } }));
+  // Update one social/contact link without mutating the existing draft.
   const updateLink = (field, value) => setDraft(prev => ({ ...prev, links: { ...prev.links, [field]: value } }));
+  // Update one field of one list entry while preserving the other entries and fields.
   const updateEntry = (type, index, field, value) => setDraft(prev => ({
     ...prev, [type]: prev[type].map((item, i) => i === index ? { ...item, [field]: value } : item),
   }));
+  // Add a section-specific entry using the blank template plus values entered in the form.
   const addEntry = (type) => {
+    // Start with the correct fields for this category, then overlay the user's entered values.
     const item = { ...emptyEntry[type], ...(newEntry[type] || {}) };
     const labelField = type === 'skills' ? 'name' : type === 'projects' ? 'title' : type === 'education' ? 'qualification' : type === 'experience' ? 'role' : 'title';
+    // Reject entries without a basic identifying label so the editor does not create blank rows.
     if (!item[labelField] && !item.name) { setNotice('Add a name or title before saving this entry.'); return; }
     setDraft(prev => ({ ...prev, [type]: [...prev[type], item] }));
     setNewEntry(prev => ({ ...prev, [type]: { ...emptyEntry[type] } }));
     setNotice('Entry added. Remember to save your portfolio changes.');
   };
+  // Remove only the selected entry from its section by filtering out its index.
   const removeEntry = (type, index) => setDraft(prev => ({ ...prev, [type]: prev[type].filter((_, i) => i !== index) }));
 
+  // Package the current portfolio as formatted JSON and trigger a browser download for backup/migration.
   const exportData = () => {
+    // Convert the data object into a downloadable JSON file with indentation for readability.
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    // Create a temporary browser URL that points to the generated JSON file.
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'isaac-okubi-portfolio.json'; a.click();
     URL.revokeObjectURL(url);
   };
+  // Read a chosen JSON backup, validate its shape, and merge supported fields with starter defaults.
   const importData = async event => {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
+      // Read the file text and parse it into a JavaScript object before trusting its structure.
       const parsed = JSON.parse(await file.text());
+      // Check for required portfolio fields so unrelated JSON files are not imported by mistake.
       if (!parsed.profile || !Array.isArray(parsed.skills) || !Array.isArray(parsed.projects)) throw new Error('That file does not look like a portfolio backup.');
       setData({ ...starterData, ...parsed, profile: { ...starterData.profile, ...parsed.profile }, links: { ...starterData.links, ...(parsed.links || {}) }, projects: parsed.projects.map(({ link, ...project }) => project) });
       setNotice('Portfolio backup imported successfully.');
     } catch (error) { setNotice(error.message || 'Could not import that JSON file.'); }
     event.target.value = '';
   };
-  // Build a readable, multi-page PDF resume from the currently published portfolio data.
-  // The PDF is generated in the browser, so no profile details are sent to a third-party service.
+  // Generate the résumé in the browser, so profile details are not sent to a third-party PDF service.
   const downloadResume = () => {
     const profile = data.profile || {};
     const clean = value => String(value ?? '').trim();
+    // Initialise jsPDF in A4 portrait mode, using millimetres for predictable page layout.
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    // Read the actual page dimensions so text and footer positions adapt to the selected PDF page size.
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 18;
@@ -278,11 +333,13 @@ function App() {
     const bottomLimit = pageHeight - 19;
     let y = 0;
 
+    // Start a fresh PDF page before a block would overlap the footer area.
     const ensureSpace = (height = 12) => {
       if (y + height <= bottomLimit) return;
       doc.addPage();
       y = 20;
     };
+    // Draw wrapped text with optional indentation and spacing; return its rendered height.
     const paragraph = (value, options = {}) => {
       const text = clean(value);
       if (!text) return;
@@ -296,6 +353,7 @@ function App() {
       doc.text(lines, margin + (options.indent || 0), y);
       y += lines.length * lineHeight + (options.gapAfter ?? 2);
     };
+    // Draw a section heading and reserve space so it does not collide with the page footer.
     const section = title => {
       ensureSpace(15);
       y += 3;
@@ -309,6 +367,7 @@ function App() {
       doc.line(margin, y, pageWidth - margin, y);
       y += 6;
     };
+    // Render one résumé item with a title, organisation/date metadata, and wrapped description.
     const entry = (heading, subheading, date, details) => {
       ensureSpace(20);
       doc.setFont('helvetica', 'bold');
@@ -354,6 +413,7 @@ function App() {
     paragraph(profile.headline, { fontSize: 10, bold: true, color: [28, 91, 105], gapAfter: 3 });
     paragraph(profile.about || 'Software developer focused on practical, user-centred digital products.', { fontSize: 9.5, lineHeight: 4.8, gapAfter: 2 });
 
+    // Group skills by category so the résumé lists related technologies together.
     const skillGroups = (data.skills || []).reduce((groups, skill) => {
       const group = clean(skill.group) || 'Other';
       (groups[group] ||= []).push(clean(skill.name));
@@ -366,6 +426,7 @@ function App() {
       });
     }
 
+    // Add each project only when there is project data to show.
     if ((data.projects || []).length) {
       section('Selected Projects');
       data.projects.forEach(project => {
@@ -375,6 +436,7 @@ function App() {
       });
     }
 
+    // Include the experience section only when at least one entry exists.
     if ((data.experience || []).length) {
       section('Experience');
       data.experience.forEach(item => {
@@ -383,6 +445,7 @@ function App() {
       });
     }
 
+    // Include education only when the profile contains education records.
     if ((data.education || []).length) {
       section('Education');
       data.education.forEach(item => {
@@ -391,11 +454,13 @@ function App() {
       });
     }
 
+    // Avoid an empty certifications heading when there are no certificates to display.
     if ((data.certifications || []).length) {
       section('Certifications');
       data.certifications.forEach(item => entry(item.name, item.issuer, item.date, item.details));
     }
 
+    // Keep only configured profile links; empty fields should not create blank résumé lines.
     const links = Object.entries(data.links || {}).filter(([, value]) => clean(value));
     if (links.length || clean(profile.resumeUrl)) {
       section('Professional Links');
@@ -421,15 +486,20 @@ function App() {
     doc.save(filename + '-resume.pdf');
   };
 
+  // Navigation labels map to the internal page identifiers used by the page-switching handler.
   const nav = [['Home', 'home'], ['About', 'about'], ['Skills', 'skills'], ['Projects', 'work'], ['Journey', 'journey'], ['Services', 'services'], ['Contact', 'contact']];
+  // Switch to the selected portfolio page, close mobile navigation, and return to the top smoothly.
   const navigateTo = (page) => { setCurrentPage(page); setMobileOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  // Short aliases keep JSX readable and prefer the public contact link over the profile fallback.
   const p = data.profile;
   const email = data.links.email || p.email;
   const contactHref = email ? `mailto:${email}` : '#contact';
 
+  // Render the public portfolio shell, page navigation, and conditional editor/account dialogs.
   return <div className="app-shell">
     <a className="skip-link" href="#main-content">Skip to content</a>
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
+    {/* Header: desktop navigation, account actions, and the collapsible mobile menu. */}
     <header className="site-header">
       <a className="brand" href="#home" onClick={event => { event.preventDefault(); navigateTo('home'); }} aria-label="Go to home"><span className="brand-mark">io.</span><span className="brand-label">PORTFOLIO<small>SOFTWARE DEVELOPER</small></span></a>
       <nav className="desktop-nav" aria-label="Main navigation">{nav.map(([label, page]) => <a key={label} href={`#${page}`} className={currentPage === page ? 'nav-active' : ''} aria-current={currentPage === page ? 'page' : undefined} onClick={event => { event.preventDefault(); navigateTo(page); }}>{label}</a>)}</nav>
@@ -447,7 +517,9 @@ function App() {
 
     {notice && !editing && <div className="toast" role="status"><Check size={16} />{notice}</div>}
 
+    {/* Main content: each section is hidden unless its page identifier is selected. */}
     <main id="main-content">
+      {/* Home hero introduces the developer and provides the main project/contact actions. */}
       <section id="home" className={cx('hero section-wrap', currentPage !== 'home' && 'page-hidden')}>
         <div className="star-field hero-star-field" aria-hidden="true">
           {Array.from({ length: 190 }, (_, i) => <span key={i} className={i % 7 === 0 ? 'falling-star' : 'twinkle-star'} style={{ '--star-left': String((i * 37 + 11) % 100) + '%', '--star-top': String((i * 23 + 7) % 100) + '%', '--star-delay': String(-(i % 17) * 1.1) + 's', '--star-duration': String(4 + (i % 8)) + 's' }} />)}
@@ -475,6 +547,7 @@ function App() {
         <a href="#about" className="scroll-cue" onClick={event => { event.preventDefault(); navigateTo("about"); }}><span className="scroll-wheel" /> Scroll to explore <ArrowDown size={14} /></a>
       </section>
 
+      {/* About section combines the biography with concise facts about the developer. */}
       <section id="about" className={cx('section-wrap section-block', currentPage !== 'about' && 'page-hidden')}>
         <SectionHeading number="01" eyebrow="A LITTLE ABOUT ME" title={<>Developer by craft.<br /><span className="muted-heading">Problem-solver by nature.</span></>} detail="I care about the details behind a great digital experience: useful features, clear interfaces, and software that people can depend on." />
         <div className="about-grid">
@@ -487,6 +560,7 @@ function App() {
         </div>
       </section>
 
+      {/* Skills section groups technologies and their self-reported proficiency levels. */}
       <section id="skills" className={cx('section-wrap section-block', currentPage !== 'skills' && 'page-hidden')}>
         <SectionHeading number="02" eyebrow="MY TOOLKIT" title={<>Skills that help ideas<br /><span className="muted-heading">become real.</span></>} detail="A growing set of languages, frameworks, and tools I use to build across the stack. Skill levels are editable—set them to reflect your current experience." />
         <div className="skills-layout">
@@ -495,6 +569,7 @@ function App() {
         </div>
       </section>
 
+      {/* Projects section shows featured cards and only renders live-demo links that exist. */}
       <section id="work" className={cx('section-wrap section-block', currentPage !== 'work' && 'page-hidden')}>
         <SectionHeading number="03" eyebrow="SELECTED PROJECTS" title={<>A few things I've<br /><span className="muted-heading">been building.</span></>} detail="Projects are where problem-solving meets practice. Open a live demo when one is available." />
         <div className="project-grid">{featuredProjects.map((project, index) => <article className={cx('project-card', index === 0 && 'project-featured')} key={project.title}>
@@ -504,6 +579,7 @@ function App() {
         {featuredProjects.length === 0 && <div className="empty-state">Your featured projects will appear here. Use <strong>Edit portfolio</strong> to add and feature projects.</div>}</div>
       </section>
 
+      {/* Journey section presents experience, education, and any supplied certifications. */}
       <section id="journey" className={cx('section-wrap section-block', currentPage !== 'journey' && 'page-hidden')}>
         <SectionHeading number="04" eyebrow="MY JOURNEY" title={<>Learning, building,<br /><span className="muted-heading">moving forward.</span></>} detail="Education gives me a foundation; hands-on projects help me turn knowledge into working software." />
         <div className="journey-grid">
@@ -513,11 +589,13 @@ function App() {
         {data.certifications.length > 0 && <div className="certifications"><h3>Certifications & courses</h3><div className="cert-grid">{data.certifications.map((cert, i) => <div className="cert-card" key={cert.name + i}><span className="cert-icon"><Check size={17} /></span><div><strong>{cert.name}</strong><p>{cert.issuer}{cert.date ? ` · ${cert.date}` : ''}</p>{cert.credential && <a href={cert.credential} target="_blank" rel="noreferrer">View credential <ArrowUpRight size={13} /></a>}</div></div>)}</div></div>}
       </section>
 
+      {/* Services section explains the development services offered to potential clients. */}
       <section id="services" className={cx('section-wrap section-block', currentPage !== 'services' && 'page-hidden')}>
         <SectionHeading number="05" eyebrow="WAYS WE CAN WORK" title={<>Let's build something<br /><span className="muted-heading">useful together.</span></>} detail="From a first website to a workflow that saves your team time, I help turn business needs into digital tools." />
         <div className="services-grid">{data.services.map((service, i) => <article className={cx('service-card', service.image && 'service-card-with-image')} key={service.title}>{service.image && <img className="service-cover-image" src={service.image} alt="" loading="lazy" />}<span className="service-number">0{i + 1}</span><span className="service-arrow"><ArrowUpRight size={19} /></span><h3>{service.title}</h3><p>{service.description}</p></article>)}</div>
       </section>
 
+      {/* Contact section provides the preferred email route and social profile links. */}
       <section id="contact" className={cx('section-wrap contact-section', currentPage !== 'contact' && 'page-hidden')}>
         <div className="contact-glow" />
         <div className="contact-content"><span className="eyebrow">06 / YOUR NEXT IDEA STARTS HERE</span><h2>Have a good problem?<br /><span className="gradient-text">Let's solve it.</span></h2><p>Have a project, opportunity, or collaboration in mind? Tell me what you're working on and let's talk through the possibilities.</p><div className="contact-actions"><a className="button button-primary button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); openEditor(); } }}><Mail size={17} /> {email ? 'Send me an email' : 'Add contact email'} <ArrowUpRight size={17} /></a>{p.resumeUrl && <a className="button button-outline button-large" href={p.resumeUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /> View resume <ArrowUpRight size={17} /></a>}<button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Download resume (PDF)</button></div><div className="contact-details">{p.email && <span><Mail size={15} /> {p.email}</span>}{p.phone && <span><Phone size={15} /> {p.phone}</span>}<span><MapPin size={15} /> {p.location}</span></div></div>
@@ -527,6 +605,7 @@ function App() {
 
     <footer className="site-footer"><a className="footer-brand" href="#home" onClick={event => { event.preventDefault(); navigateTo("home"); }}>io.</a><p>Designed with curiosity. Built with care.</p><span>© {new Date().getFullYear()} {p.name}. All rights reserved.</span><a href="#home" className="back-top" onClick={event => { event.preventDefault(); navigateTo("home"); }}>Back to top <ArrowUpRight size={14} /></a></footer>
 
+    {/* Account overlay appears only while login or account settings are open. */}
     {authView && <div className="editor-backdrop auth-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeAuth(); }}>
       <section className="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <div className="editor-header"><div><span className="eyebrow">PRIVATE PORTFOLIO ACCESS</span><h2 id="auth-title">{authView === 'login' ? 'Admin login' : 'Account settings'}</h2><p>{authView === 'login' ? 'Sign in to manage your portfolio.' : 'Change the email address and password used for this browser.'}</p></div><button className="editor-close" onClick={closeAuth} aria-label="Close dialog"><X /></button></div>
@@ -546,6 +625,7 @@ function App() {
       </section>
     </div>}
 
+    {/* Editor overlay works on a draft copy and offers save/cancel plus JSON backup controls. */}
     {editing && draft && <div className="editor-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) closeEditor(); }}>
       <section className="editor-panel" role="dialog" aria-modal="true" aria-labelledby="editor-title">
         <div className="editor-header"><div><span className="eyebrow">YOUR PERSONAL BRAND</span><h2 id="editor-title">Portfolio editor</h2><p>Update your public-facing details and save a local draft. This static version stores changes only in this browser; it does not publish them for other visitors.</p></div><button className="editor-close" onClick={closeEditor} aria-label="Close editor"><X /></button></div>
@@ -581,10 +661,12 @@ function App() {
   </div>;
 }
 
+// Shared controlled input: values come from React state and edits are reported to the parent.
 function Field({ label, value, onChange, type = 'text', multiline = false, wide = false }) {
   return <label className={cx('field', wide && 'field-wide')}><span>{label}</span>{multiline ? <textarea rows={4} value={value ?? ''} onChange={e => onChange(e.target.value)} /> : <input type={type} value={value ?? ''} onChange={e => onChange(e.target.value)} />}</label>;
 }
 
+// Generate fields for the selected content type so each editor list can reuse the same form component.
 function EntryForm({ type, value, onChange, onSave, onCancel }) {
   const fields = {
     skills: [['name','Skill name'],['level','Level'],['group','Category']],
