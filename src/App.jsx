@@ -227,6 +227,9 @@ function App() {
 
     <main id="main-content">
       <section id="home" className={cx('hero section-wrap', currentPage !== 'home' && 'page-hidden')}>
+        <div className="star-field hero-star-field" aria-hidden="true">
+          {Array.from({ length: 190 }, (_, i) => <span key={i} className={i % 7 === 0 ? 'falling-star' : 'twinkle-star'} style={{ '--star-left': String((i * 37 + 11) % 100) + '%', '--star-top': String((i * 23 + 7) % 100) + '%', '--star-delay': String(-(i % 17) * 1.1) + 's', '--star-duration': String(4 + (i % 8)) + 's' }} />)}
+        </div>
         <div className="hero-copy">
           <div className="availability"><span className="status-dot" />{p.availability || 'Open to opportunities'}<span className="availability-line" /></div>
           <p className="hero-kicker">HELLO, I'M {p.name.toUpperCase()}</p>
@@ -239,9 +242,7 @@ function App() {
           <div className="hero-meta"><span><MapPin size={15} /> {p.location || 'Available worldwide'}</span><span><Code2 size={15} /> {p.yearsExperience || 'Software development'}</span></div>
         </div>
         <div className="hero-visual portrait-visual">
-          <div className="star-field" aria-hidden="true">
-            {Array.from({ length: 112 }, (_, i) => <span key={i} className={i % 9 === 0 ? 'falling-star' : 'twinkle-star'} style={{ '--star-left': String((i * 37 + 11) % 100) + '%', '--star-top': String((i * 23 + 7) % 100) + '%', '--star-delay': String(-(i % 11) * 1.3) + 's', '--star-duration': String(5 + (i % 7)) + 's' }} />)}
-          </div><div className="visual-topline"><span>BUILD / LEARN / REPEAT</span><span className="mono">001—∞</span></div>
+<div className="visual-topline"><span>BUILD / LEARN / REPEAT</span><span className="mono">001—∞</span></div>
           <div className="portrait-frame"><div className="portrait-glow" />
             <div className="portrait-image">{p.portraitUrl ? <img src={p.portraitUrl} alt={'Portrait of ' + p.name} /> : <ProfileAvatar name={p.name} />}</div>
             <div className="portrait-ring portrait-ring-one" /><div className="portrait-ring portrait-ring-two" /><span className="portrait-corner portrait-corner-tl" /><span className="portrait-corner portrait-corner-br" />
