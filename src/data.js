@@ -1,0 +1,56 @@
+// Starter content: edit these details in the website's built-in portfolio editor.
+export const starterData = {
+  profile: {
+    name: 'Isaac Okubi',
+    role: 'Software Developer',
+    location: 'Kenya',
+    email: 'hello@example.com',
+    phone: '',
+    headline: 'I turn ideas into reliable digital products.',
+    about: "I'm a software developer focused on building modern websites, practical business systems, and mobile experiences. I enjoy solving real problems with thoughtful user experiences, maintainable code, and technology that helps people work smarter.",
+    availability: 'Open to opportunities',
+    yearsExperience: 'Early-career developer',
+    resumeUrl: '',
+    portraitUrl: '',
+  },
+  links: {
+    github: 'https://github.com/isaacokubi',
+    linkedin: '',
+    website: '',
+    email: 'hello@example.com',
+  },
+  skills: [
+    { name: 'JavaScript', level: 'Advanced', group: 'Languages' },
+    { name: 'HTML & CSS', level: 'Advanced', group: 'Frontend' },
+    { name: 'React', level: 'Intermediate', group: 'Frontend' },
+    { name: 'Tailwind CSS', level: 'Intermediate', group: 'Frontend' },
+    { name: 'Node.js & Express', level: 'Intermediate', group: 'Backend' },
+    { name: 'MongoDB', level: 'Intermediate', group: 'Database' },
+    { name: 'PHP & Laravel', level: 'Intermediate', group: 'Backend' },
+    { name: 'Vue.js', level: 'Intermediate', group: 'Frontend' },
+    { name: 'Flutter & Dart', level: 'Intermediate', group: 'Mobile' },
+    { name: 'Git & GitHub', level: 'Intermediate', group: 'Tools' },
+    { name: 'REST APIs', level: 'Intermediate', group: 'Backend' },
+    { name: 'M-Pesa integration', level: 'Learning', group: 'Integrations' },
+  ],
+  projects: [
+    { title: 'Coherent Tours', category: 'Business platform', description: 'A tour operations management platform concept covering tour catalogues, bookings, team assignments, finance workflows, and multi-tenant business operations.', stack: 'React, Node.js, Express, MongoDB', link: 'https://github.com/isaacokubi/hussein-mboya-tours', demo: 'https://hussein-mboya-tours.vercel.app', featured: true },
+    { title: 'Chatify', category: 'Communication app', description: 'A real-time communication app concept focused on conversations, context-aware memories, and message expiry, with a Flutter client and API backend.', stack: 'Flutter, Dart, Node.js, Socket.IO, MongoDB', link: 'https://github.com/isaacokubi/chatify', demo: '', featured: true },
+    { title: 'BookHub', category: 'Book marketplace', description: 'A book discovery and selling platform concept with store experiences, product browsing, cart and order flows, reviews, and M-Pesa payment workflows.', stack: 'JavaScript, React, Node.js, MongoDB', link: 'https://github.com/isaacokubi/bookhub', demo: 'https://bookhub-swart.vercel.app', featured: true },
+  ],
+  education: [
+    { qualification: 'Diploma in Software Development', institution: 'IST, Kenya', start: '', end: '', status: 'Completed', details: 'Coursework included web development, JavaScript, React, MERN stack, PHP, Laravel, Vue.js, and Flutter/Dart.' },
+  ],
+  experience: [
+    { role: 'Independent Software Developer', company: 'Personal projects', start: '', end: 'Present', location: 'Kenya / Remote', details: 'Designing and developing web applications, business workflows, REST APIs, and mobile app features. Building portfolio projects and improving delivery, testing, and deployment practices.' },
+  ],
+  certifications: [],
+  services: [
+    { title: 'Website development', description: 'Responsive business websites and landing pages designed to turn visitors into enquiries.' },
+    { title: 'Business systems', description: 'Admin dashboards and workflows for managing customers, records, operations, and reports.' },
+    { title: 'Payments & integrations', description: 'API integrations and payment-flow implementation, including M-Pesa where provider access is available.' },
+    { title: 'E-commerce platforms', description: 'Product catalogues, store experiences, carts, and order management.' },
+    { title: 'Mobile applications', description: 'Cross-platform mobile app interfaces and API-connected features with Flutter.' },
+    { title: 'Maintenance & support', description: 'Bug fixes, usability improvements, deployment assistance, and ongoing updates.' },
+  ],
+};
