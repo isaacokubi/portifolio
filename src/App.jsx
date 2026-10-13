@@ -8,12 +8,15 @@ import {
 import { starterData } from './data.js';
 import { jsPDF } from 'jspdf';
 
+// Stable localStorage key used to save editable portfolio content in this browser.
 const STORAGE_KEY = 'isaac-okubi-portfolio-v1';
 // This static portfolio has no server-side identity provider. These browser-only credentials
 // gate the editor UI on this device; they are not a substitute for server-side authentication.
+// Separate storage key for the editor account settings (email and password hash).
 const ADMIN_CONFIG_KEY = 'isaac-okubi-portfolio-admin-v1';
 const DEFAULT_ADMIN_EMAIL = 'izobrack3@gmail.com';
 const DEFAULT_ADMIN_PASSWORD_HASH = 'a22e21530e72a903329e4b265ba8d3a815a6a0ded071495c6d20fec843417fe2';
+// Read the editor account settings safely; malformed or missing storage falls back to defaults.
 function loadAdminConfig() {
   try {
     const saved = JSON.parse(localStorage.getItem(ADMIN_CONFIG_KEY) || 'null');
@@ -21,10 +24,12 @@ function loadAdminConfig() {
   } catch { /* Start with the default account if saved settings are unreadable. */ }
   return { email: DEFAULT_ADMIN_EMAIL, passwordHash: DEFAULT_ADMIN_PASSWORD_HASH };
 }
+// Hash the password before comparing or storing it, so the raw password is not saved in localStorage.
 async function hashPassword(password) {
   const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
 }
+// Blank templates ensure each new editor entry starts with the fields expected by its section.
 const emptyEntry = {
   skills: { name: '', level: 'Intermediate', group: 'General' },
   projects: { title: '', category: 'Web application', description: '', stack: '', demo: '', image: '', featured: false },
@@ -33,12 +38,15 @@ const emptyEntry = {
   certifications: { name: '', issuer: '', date: '', credential: '' },
   services: { title: '', description: '', image: '' },
 };
+// Human-readable labels used when the editor displays the active content section.
 const sectionLabels = {
   skills: 'Skills', projects: 'Projects', education: 'Education',
   experience: 'Experience', certifications: 'Certifications', services: 'Services',
 };
+// Join CSS class names while ignoring empty values and false conditional classes.
 const cx = (...classes) => classes.filter(Boolean).join(' ');
 
+// Restore saved portfolio data and merge it with defaults so newly added fields still have values.
 function loadData() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -56,6 +64,7 @@ function loadData() {
 }
 
 
+// Validate and resize uploaded images before saving them as compact WebP data URLs in browser storage.
 function compressImage(file) {
   return new Promise((resolve, reject) => {
     if (!file || !file.type.startsWith('image/')) { reject(new Error('Choose a JPG, PNG, or WebP image.')); return; }
@@ -80,6 +89,7 @@ function compressImage(file) {
     reader.readAsDataURL(file);
   });
 }
+// Reusable image picker with preview, replacement/removal controls, and visible validation errors.
 function ImageUploadField({ label, value, onChange, wide = false }) {
   const [error, setError] = useState('');
   const inputRef = useRef(null);
@@ -101,6 +111,7 @@ function ImageUploadField({ label, value, onChange, wide = false }) {
     </div>
   </div>;
 }
+// Draw a lightweight inline SVG avatar and derive its initials from the displayed profile name.
 function ProfileAvatar({ name }) {
   const initials = (name || 'Developer').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase();
   return <div className="avatar-illustration" role="img" aria-label={name + ' profile illustration'}>
@@ -121,11 +132,13 @@ function ProfileAvatar({ name }) {
     </svg><span className="avatar-caption"><span className="status-dot" /> DIGITAL CRAFTSMAN</span>
   </div>;
 }
+// Render an accessible social/contact link only when a destination URL is provided.
 function IconLink({ href, label, children, className = '' }) {
   if (!href) return null;
   return <a href={href} aria-label={label} title={label} className={cx('icon-link', className)} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noreferrer' : undefined}>{children}</a>;
 }
 
+// Keep section titles consistent by sharing the eyebrow, heading, optional detail, and index layout.
 function SectionHeading({ eyebrow, title, detail, number }) {
   return <div className="section-heading">
     <div><span className="eyebrow">{number} / {eyebrow}</span><h2>{title}</h2></div>
@@ -133,6 +146,7 @@ function SectionHeading({ eyebrow, title, detail, number }) {
   </div>;
 }
 
+// Main page component: owns portfolio state, editor/authentication state, and page interactions.
 function App() {
   const [data, setData] = useState(loadData);
   const [editing, setEditing] = useState(false);
@@ -154,6 +168,7 @@ function App() {
   const [notice, setNotice] = useState('');
   const fileInput = useRef(null);
 
+  // Persist content changes after React updates the data state; storage failures are shown in the editor.
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -163,17 +178,21 @@ function App() {
     }
   }, [data]);
 
+  // Derive featured projects and skill categories from data instead of maintaining duplicate state.
   const featuredProjects = useMemo(() => data.projects.filter(p => p.featured), [data.projects]);
   const allSkills = useMemo(() => [...new Set(data.skills.map(s => s.group || 'General'))], [data.skills]);
 
+  // Copy current content into a draft so Cancel can discard edits without changing the public page.
   const openEditor = () => {
     setDraft(JSON.parse(JSON.stringify(data)));
     setEditing(true);
     setNotice('');
   };
   const closeEditor = () => { setEditing(false); setDraft(null); setEditIndex(null); setNewEntry({}); };
+  // Reset stale login errors and inputs whenever the sign-in dialog is opened.
   const openLogin = () => { setAuthView('login'); setAuthError(''); setLoginEmail(''); setLoginPassword(''); };
   const closeAuth = () => { setAuthView(''); setAuthError(''); setLoginPassword(''); setAccountForm({ currentPassword: '', email: adminConfig.email, newPassword: '', confirmPassword: '' }); };
+  // Authenticate the editor using the saved email and a hash comparison; prevent normal form submission.
   const handleLogin = async event => {
     event.preventDefault();
     try {
@@ -189,6 +208,7 @@ function App() {
       setAuthError('Secure password checking is unavailable in this browser. Use HTTPS or localhost.');
     }
   };
+  // Validate the current password and new account fields before saving updated local credentials.
   const handleCredentialChange = async event => {
     event.preventDefault();
     setAuthError('');
@@ -220,12 +240,14 @@ function App() {
       setAuthError('Could not update credentials in this browser.');
     }
   };
+  // Close the editor and clear authentication-related state when the user signs out.
   const handleLogout = () => {
     closeEditor();
     setIsLoggedIn(false);
     closeAuth();
     setNotice('You have been logged out.');
   };
+  // Commit the edited draft into the main React state; the persistence effect saves it locally afterward.
   const saveDraft = () => {
     setData(draft);
     setEditing(false);
@@ -233,11 +255,15 @@ function App() {
     setNotice('Changes saved in this browser. They are not published to other visitors automatically.');
     window.setTimeout(() => setNotice(''), 3500);
   };
+  // Update one profile field immutably so React receives a new draft object.
   const updateProfile = (field, value) => setDraft(prev => ({ ...prev, profile: { ...prev.profile, [field]: value } }));
+  // Update one social/contact link without mutating the existing draft.
   const updateLink = (field, value) => setDraft(prev => ({ ...prev, links: { ...prev.links, [field]: value } }));
+  // Update one field of one list entry while preserving the other entries and fields.
   const updateEntry = (type, index, field, value) => setDraft(prev => ({
     ...prev, [type]: prev[type].map((item, i) => i === index ? { ...item, [field]: value } : item),
   }));
+  // Add a section-specific entry using the blank template plus values entered in the form.
   const addEntry = (type) => {
     const item = { ...emptyEntry[type], ...(newEntry[type] || {}) };
     const labelField = type === 'skills' ? 'name' : type === 'projects' ? 'title' : type === 'education' ? 'qualification' : type === 'experience' ? 'role' : 'title';
@@ -246,14 +272,17 @@ function App() {
     setNewEntry(prev => ({ ...prev, [type]: { ...emptyEntry[type] } }));
     setNotice('Entry added. Remember to save your portfolio changes.');
   };
+  // Remove only the selected entry from its section by filtering out its index.
   const removeEntry = (type, index) => setDraft(prev => ({ ...prev, [type]: prev[type].filter((_, i) => i !== index) }));
 
+  // Package the current portfolio as formatted JSON and trigger a browser download for backup/migration.
   const exportData = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'isaac-okubi-portfolio.json'; a.click();
     URL.revokeObjectURL(url);
   };
+  // Read a chosen JSON backup, validate its shape, and merge supported fields with starter defaults.
   const importData = async event => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -267,6 +296,7 @@ function App() {
   };
   // Build a readable, multi-page PDF resume from the currently published portfolio data.
   // The PDF is generated in the browser, so no profile details are sent to a third-party service.
+  // Build a downloadable A4 PDF résumé from portfolio data, wrapping text and adding page numbers.
   const downloadResume = () => {
     const profile = data.profile || {};
     const clean = value => String(value ?? '').trim();
@@ -278,11 +308,13 @@ function App() {
     const bottomLimit = pageHeight - 19;
     let y = 0;
 
+    // Start a fresh PDF page before a block would overlap the footer area.
     const ensureSpace = (height = 12) => {
       if (y + height <= bottomLimit) return;
       doc.addPage();
       y = 20;
     };
+    // Draw wrapped text with optional indentation and spacing; return its rendered height.
     const paragraph = (value, options = {}) => {
       const text = clean(value);
       if (!text) return;
@@ -296,6 +328,7 @@ function App() {
       doc.text(lines, margin + (options.indent || 0), y);
       y += lines.length * lineHeight + (options.gapAfter ?? 2);
     };
+    // Draw a section heading and reserve space so it does not collide with the page footer.
     const section = title => {
       ensureSpace(15);
       y += 3;
@@ -309,6 +342,7 @@ function App() {
       doc.line(margin, y, pageWidth - margin, y);
       y += 6;
     };
+    // Render one résumé item with a title, organisation/date metadata, and wrapped description.
     const entry = (heading, subheading, date, details) => {
       ensureSpace(20);
       doc.setFont('helvetica', 'bold');
@@ -404,6 +438,7 @@ function App() {
     }
 
     // Add consistent page numbering after all pages have been laid out.
+    // Add a page counter to every PDF page after all content has been laid out.
     const pageCount = doc.getNumberOfPages();
     for (let page = 1; page <= pageCount; page += 1) {
       doc.setPage(page);
@@ -421,6 +456,7 @@ function App() {
     doc.save(filename + '-resume.pdf');
   };
 
+  // Navigation labels map to the internal page identifiers used by the page-switching handler.
   const nav = [['Home', 'home'], ['About', 'about'], ['Skills', 'skills'], ['Projects', 'work'], ['Journey', 'journey'], ['Services', 'services'], ['Contact', 'contact']];
   const navigateTo = (page) => { setCurrentPage(page); setMobileOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const p = data.profile;
@@ -581,10 +617,12 @@ function App() {
   </div>;
 }
 
+// Shared controlled input: values come from React state and edits are reported to the parent.
 function Field({ label, value, onChange, type = 'text', multiline = false, wide = false }) {
   return <label className={cx('field', wide && 'field-wide')}><span>{label}</span>{multiline ? <textarea rows={4} value={value ?? ''} onChange={e => onChange(e.target.value)} /> : <input type={type} value={value ?? ''} onChange={e => onChange(e.target.value)} />}</label>;
 }
 
+// Generate fields for the selected content type so each editor list can reuse the same form component.
 function EntryForm({ type, value, onChange, onSave, onCancel }) {
   const fields = {
     skills: [['name','Skill name'],['level','Level'],['group','Category']],
