@@ -1,25 +1,39 @@
 <!doctype html>
+<!-- Tell browsers and assistive technology that this document uses HTML5. -->
 <html lang="en">
   <head>
+    <!-- Use UTF-8 so names and symbols display correctly. -->
     <meta charset="UTF-8" />
+    <!-- Make the layout use the device's real viewport width on phones and tablets. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Set the browser chrome colour on supported mobile browsers. -->
     <meta name="theme-color" content="#0b1020" />
+    <!-- Describe the site for search results and link previews. -->
     <meta name="description" content="Isaac Okubi is a software developer in Kenya building modern web applications, business systems, APIs, and mobile experiences." />
+    <!-- Identify the portfolio owner. -->
     <meta name="author" content="Isaac Okubi" />
+    <!-- Allow compliant search engines to index the public site and follow its links. -->
     <meta name="robots" content="index, follow" />
+    <!-- Open Graph metadata controls how the site appears when shared on social platforms. -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Isaac Okubi | Software Developer" />
     <meta property="og:description" content="Explore software projects, technical skills, and practical digital products built by Isaac Okubi." />
+    <!-- Twitter card metadata provides a compact social preview. -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Isaac Okubi | Software Developer" />
     <meta name="twitter:description" content="Software developer building modern web applications, business systems, APIs, and mobile experiences." />
+    <!-- Browser tab title and search-result title. -->
     <title>Isaac Okubi | Software Developer</title>
+    <!-- Establish early connections to the font provider to reduce font-loading delay. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Load the two font families used by the portfolio's typography. -->
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <!-- React mounts the entire interactive portfolio into this element. -->
     <div id="root"></div>
+    <!-- Vite loads the JavaScript entry point as an ES module. -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
