@@ -370,7 +370,9 @@ function App() {
       section('Selected Projects');
       data.projects.forEach(project => {
         const stack = clean(project.stack);
-        const links = [project.demo ? 'Live demo: ' + project.demo : '', project.sourceUrl ? 'Source: ' + project.sourceUrl : ''].filter(Boolean).join(' | ');
+        const knownSources = { 'Coherent Tours': 'https://github.com/isaacokubi/hussein-mboya-tours', Chatify: 'https://github.com/isaacokubi/chatify', BookHub: 'https://github.com/isaacokubi/bookhub' };
+        const sourceUrl = clean(project.sourceUrl) || knownSources[clean(project.title)] || '';
+        const links = [project.demo ? 'Live demo: ' + project.demo : '', sourceUrl ? 'Source code: ' + sourceUrl : ''].filter(Boolean).join(' | ');
         entry(project.title, project.category, '', [clean(project.description), stack ? 'Technology: ' + stack : '', links].filter(Boolean).join('\n'));
       });
     }
