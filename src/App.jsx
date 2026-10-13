@@ -3,11 +3,27 @@ import {
   ArrowDown, ArrowDownRight, ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, Github,
   Code2, Download, ExternalLink, FileJson, GraduationCap,
   HeartHandshake, Layers3, Mail, MapPin, Menu, MessageCircle, Pencil, Plus,
-  Send, Sparkles, Trash2, X, Upload, Globe, Linkedin, Phone, Save, RotateCcw,
+  Send, Sparkles, Trash2, X, Upload, Globe, Linkedin, Phone, Save, RotateCcw, LogIn, LogOut, LockKeyhole, ShieldCheck,
 } from 'lucide-react';
 import { starterData } from './data.js';
 
 const STORAGE_KEY = 'isaac-okubi-portfolio-v1';
+// This static portfolio has no server-side identity provider. These browser-only credentials
+// gate the editor UI on this device; they are not a substitute for server-side authentication.
+const ADMIN_CONFIG_KEY = 'isaac-okubi-portfolio-admin-v1';
+const DEFAULT_ADMIN_EMAIL = 'izobrack3@gmail.com';
+const DEFAULT_ADMIN_PASSWORD_HASH = 'a22e21530e72a903329e4b265ba8d3a815a6a0ded071495c6d20fec843417fe2';
+function loadAdminConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ADMIN_CONFIG_KEY) || 'null');
+    if (saved?.email && saved?.passwordHash) return saved;
+  } catch { /* Start with the default account if saved settings are unreadable. */ }
+  return { email: DEFAULT_ADMIN_EMAIL, passwordHash: DEFAULT_ADMIN_PASSWORD_HASH };
+}
+async function hashPassword(password) {
+  const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+}
 const emptyEntry = {
   skills: { name: '', level: 'Intermediate', group: 'General' },
   projects: { title: '', category: 'Web application', description: '', stack: '', demo: '', image: '', featured: false },
@@ -119,6 +135,13 @@ function SectionHeading({ eyebrow, title, detail, number }) {
 function App() {
   const [data, setData] = useState(loadData);
   const [editing, setEditing] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authView, setAuthView] = useState('');
+  const [adminConfig, setAdminConfig] = useState(loadAdminConfig);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [accountForm, setAccountForm] = useState({ currentPassword: '', email: '', newPassword: '', confirmPassword: '' });
   const [mobileOpen, setMobileOpen] = useState(false);
   // Track the visible portfolio page so the navbar behaves like page navigation.
   const [currentPage, setCurrentPage] = useState('home');
@@ -148,6 +171,60 @@ function App() {
     setNotice('');
   };
   const closeEditor = () => { setEditing(false); setDraft(null); setEditIndex(null); setNewEntry({}); };
+  const openLogin = () => { setAuthView('login'); setAuthError(''); setLoginEmail(''); setLoginPassword(''); };
+  const closeAuth = () => { setAuthView(''); setAuthError(''); setLoginPassword(''); setAccountForm({ currentPassword: '', email: adminConfig.email, newPassword: '', confirmPassword: '' }); };
+  const handleLogin = async event => {
+    event.preventDefault();
+    try {
+      const passwordHash = await hashPassword(loginPassword);
+      if (loginEmail.trim().toLowerCase() !== adminConfig.email.toLowerCase() || passwordHash !== adminConfig.passwordHash) {
+        setAuthError('The email or password is incorrect.');
+        return;
+      }
+      setIsLoggedIn(true);
+      closeAuth();
+      setNotice('You are logged in. Portfolio editing is now available.');
+    } catch {
+      setAuthError('Secure password checking is unavailable in this browser. Use HTTPS or localhost.');
+    }
+  };
+  const handleCredentialChange = async event => {
+    event.preventDefault();
+    setAuthError('');
+    if (!accountForm.email.trim() || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(accountForm.email.trim())) {
+      setAuthError('Enter a valid email address.');
+      return;
+    }
+    if (accountForm.newPassword.length < 10) {
+      setAuthError('Choose a new password with at least 10 characters.');
+      return;
+    }
+    if (accountForm.newPassword !== accountForm.confirmPassword) {
+      setAuthError('The new passwords do not match.');
+      return;
+    }
+    try {
+      if (await hashPassword(accountForm.currentPassword) !== adminConfig.passwordHash) {
+        setAuthError('Your current password is incorrect.');
+        return;
+      }
+      const updated = { email: accountForm.email.trim(), passwordHash: await hashPassword(accountForm.newPassword) };
+      localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(updated));
+      setAdminConfig(updated);
+      setAccountForm({ currentPassword: '', email: updated.email, newPassword: '', confirmPassword: '' });
+      setAuthError('');
+      setNotice('Login email and password updated on this browser.');
+      setAuthView('');
+    } catch {
+      setAuthError('Could not update credentials in this browser.');
+    }
+  };
+  const handleLogout = () => {
+    closeEditor();
+    setIsLoggedIn(false);
+    closeAuth();
+    setNotice('You have been logged out.');
+  };
   const saveDraft = () => {
     setData(draft);
     setEditing(false);
@@ -216,11 +293,15 @@ function App() {
       <a className="brand" href="#home" onClick={event => { event.preventDefault(); navigateTo('home'); }} aria-label="Go to home"><span className="brand-mark">io.</span><span className="brand-label">PORTFOLIO<small>SOFTWARE DEVELOPER</small></span></a>
       <nav className="desktop-nav" aria-label="Main navigation">{nav.map(([label, page]) => <a key={label} href={`#${page}`} className={currentPage === page ? 'nav-active' : ''} aria-current={currentPage === page ? 'page' : undefined} onClick={event => { event.preventDefault(); navigateTo(page); }}>{label}</a>)}</nav>
       <div className="header-actions">
-        <button className="button button-quiet header-edit" onClick={openEditor}><Pencil size={15} /> Edit portfolio</button>
+        {isLoggedIn ? <>
+          <button className="button button-quiet header-edit" onClick={openEditor}><Pencil size={15} /> Edit portfolio</button>
+          <button className="button button-quiet account-settings-button" onClick={() => { setAccountForm({ currentPassword: '', email: adminConfig.email, newPassword: '', confirmPassword: '' }); setAuthError(''); setAuthView('settings'); }}><ShieldCheck size={15} /> Account</button>
+          <button className="button button-quiet account-logout-button" onClick={handleLogout}><LogOut size={15} /> Log out</button>
+        </> : <button className="button button-quiet login-button" onClick={openLogin}><LogIn size={15} /> Login</button>}
         <a className="button button-primary header-contact" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); navigateTo("contact"); } }}>Let's talk <ArrowUpRight size={16} /></a>
         <button className="mobile-menu" aria-label="Toggle navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen(v => !v)}>{mobileOpen ? <X /> : <Menu />}</button>
       </div>
-      {mobileOpen && <nav className="mobile-nav" aria-label="Mobile navigation">{nav.map(([label, page]) => <a key={label} href={`#${page}`} className={currentPage === page ? 'nav-active' : ''} aria-current={currentPage === page ? 'page' : undefined} onClick={event => { event.preventDefault(); navigateTo(page); }}>{label}</a>)}<button onClick={() => { setMobileOpen(false); openEditor(); }}>Edit portfolio</button></nav>}
+      {mobileOpen && <nav className="mobile-nav" aria-label="Mobile navigation">{nav.map(([label, page]) => <a key={label} href={`#${page}`} className={currentPage === page ? 'nav-active' : ''} aria-current={currentPage === page ? 'page' : undefined} onClick={event => { event.preventDefault(); navigateTo(page); }}>{label}</a>)}{isLoggedIn ? <><button onClick={() => { setMobileOpen(false); openEditor(); }}>Edit portfolio</button><button onClick={() => { setMobileOpen(false); setAccountForm({ currentPassword: '', email: adminConfig.email, newPassword: '', confirmPassword: '' }); setAuthView('settings'); }}>Account settings</button><button onClick={handleLogout}>Log out</button></> : <button onClick={() => { setMobileOpen(false); openLogin(); }}><LogIn size={15} /> Login</button>}</nav>}
     </header>
 
     {notice && !editing && <div className="toast" role="status"><Check size={16} />{notice}</div>}
@@ -304,6 +385,25 @@ function App() {
     </main>
 
     <footer className="site-footer"><a className="footer-brand" href="#home" onClick={event => { event.preventDefault(); navigateTo("home"); }}>io.</a><p>Designed with curiosity. Built with care.</p><span>© {new Date().getFullYear()} {p.name}. All rights reserved.</span><a href="#home" className="back-top" onClick={event => { event.preventDefault(); navigateTo("home"); }}>Back to top <ArrowUpRight size={14} /></a></footer>
+
+    {authView && <div className="editor-backdrop auth-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeAuth(); }}>
+      <section className="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <div className="editor-header"><div><span className="eyebrow">PRIVATE PORTFOLIO ACCESS</span><h2 id="auth-title">{authView === 'login' ? 'Admin login' : 'Account settings'}</h2><p>{authView === 'login' ? 'Sign in to manage your portfolio.' : 'Change the email address and password used for this browser.'}</p></div><button className="editor-close" onClick={closeAuth} aria-label="Close dialog"><X /></button></div>
+        {authError && <p className="auth-error" role="alert">{authError}</p>}
+        {authView === 'login' ? <form className="auth-form" onSubmit={handleLogin}>
+          <Field label="Email address" value={loginEmail} onChange={setLoginEmail} type="email" />
+          <Field label="Password" value={loginPassword} onChange={setLoginPassword} type="password" />
+          <button className="button button-primary auth-submit" type="submit"><LockKeyhole size={16} /> Login</button>
+        </form> : <form className="auth-form" onSubmit={handleCredentialChange}>
+          <Field label="Current password" value={accountForm.currentPassword} onChange={value => setAccountForm(prev => ({ ...prev, currentPassword: value }))} type="password" />
+          <Field label="New login email" value={accountForm.email} onChange={value => setAccountForm(prev => ({ ...prev, email: value }))} type="email" />
+          <Field label="New password (10+ characters)" value={accountForm.newPassword} onChange={value => setAccountForm(prev => ({ ...prev, newPassword: value }))} type="password" />
+          <Field label="Confirm new password" value={accountForm.confirmPassword} onChange={value => setAccountForm(prev => ({ ...prev, confirmPassword: value }))} type="password" />
+          <button className="button button-primary auth-submit" type="submit"><ShieldCheck size={16} /> Save login details</button>
+          <p className="auth-security-note">Credentials are saved in this browser only. This static-site login hides the editor UI but is not server-side security.</p>
+        </form>}
+      </section>
+    </div>}
 
     {editing && draft && <div className="editor-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) closeEditor(); }}>
       <section className="editor-panel" role="dialog" aria-modal="true" aria-labelledby="editor-title">
