@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ArrowDown, ArrowDownRight, ArrowRight, ArrowUpRight, BriefcaseBusiness, Check,
+  ArrowDown, ArrowDownRight, ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, Github,
   Code2, Download, ExternalLink, FileJson, GraduationCap,
   HeartHandshake, Layers3, Mail, MapPin, Menu, MessageCircle, Pencil, Plus,
   Send, Sparkles, Trash2, X, Upload, Globe, Linkedin, Phone, Save, RotateCcw,
@@ -152,7 +152,7 @@ function App() {
     setData(draft);
     setEditing(false);
     setDraft(null);
-    setNotice('Portfolio changes saved in this browser.');
+    setNotice('Changes saved in this browser. They are not published to other visitors automatically.');
     window.setTimeout(() => setNotice(''), 3500);
   };
   const updateProfile = (field, value) => setDraft(prev => ({ ...prev, profile: { ...prev.profile, [field]: value } }));
@@ -210,6 +210,7 @@ function App() {
   const contactHref = email ? `mailto:${email}` : '#contact';
 
   return <div className="app-shell">
+    <a className="skip-link" href="#main-content">Skip to content</a>
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
     <header className="site-header">
       <a className="brand" href="#home" onClick={event => { event.preventDefault(); navigateTo('home'); }} aria-label="Go to home"><span className="brand-mark">io.</span><span>{p.name}<small>SOFTWARE DEVELOPER</small></span></a>
@@ -224,13 +225,13 @@ function App() {
 
     {notice && !editing && <div className="toast" role="status"><Check size={16} />{notice}</div>}
 
-    <main>
+    <main id="main-content">
       <section id="home" className={cx('hero section-wrap', currentPage !== 'home' && 'page-hidden')}>
         <div className="hero-copy">
           <div className="availability"><span className="status-dot" />{p.availability || 'Open to opportunities'}<span className="availability-line" /></div>
           <p className="hero-kicker">HELLO, I'M {p.name.toUpperCase()}</p>
           <h1>I build digital<br /><span className="gradient-text">things that matter.</span></h1>
-          <p className="hero-description">{p.headline} {p.about}</p>
+          <p className="hero-description">{p.headline || p.about}</p>
           <div className="hero-actions">
             <a className="button button-primary button-large" href="#work" onClick={event => { event.preventDefault(); navigateTo("work"); }}>Explore my work <ArrowDownRight size={18} /></a>
             <a className="button button-outline button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); navigateTo("contact"); } }}><Mail size={17} /> Get in touch</a>
@@ -239,7 +240,7 @@ function App() {
         </div>
         <div className="hero-visual portrait-visual">
           <div className="star-field" aria-hidden="true">
-            {Array.from({ length: 30 }, (_, i) => <span key={i} className={i % 5 === 0 ? 'falling-star' : 'twinkle-star'} style={{ '--star-left': String((i * 37 + 11) % 100) + '%', '--star-top': String((i * 23 + 7) % 100) + '%', '--star-delay': String(-(i % 11) * 1.3) + 's', '--star-duration': String(5 + (i % 7)) + 's' }} />)}
+            {Array.from({ length: 112 }, (_, i) => <span key={i} className={i % 9 === 0 ? 'falling-star' : 'twinkle-star'} style={{ '--star-left': String((i * 37 + 11) % 100) + '%', '--star-top': String((i * 23 + 7) % 100) + '%', '--star-delay': String(-(i % 11) * 1.3) + 's', '--star-duration': String(5 + (i % 7)) + 's' }} />)}
           </div><div className="visual-topline"><span>BUILD / LEARN / REPEAT</span><span className="mono">001—∞</span></div>
           <div className="portrait-frame"><div className="portrait-glow" />
             <div className="portrait-image">{p.portraitUrl ? <img src={p.portraitUrl} alt={'Portrait of ' + p.name} /> : <ProfileAvatar name={p.name} />}</div>
@@ -296,8 +297,8 @@ function App() {
 
       <section id="contact" className={cx('section-wrap contact-section', currentPage !== 'contact' && 'page-hidden')}>
         <div className="contact-glow" />
-        <div className="contact-content"><span className="eyebrow">06 / YOUR NEXT IDEA STARTS HERE</span><h2>Have a good problem?<br /><span className="gradient-text">Let's solve it.</span></h2><p>Have a project, opportunity, or collaboration in mind? Tell me what you're working on and let's talk through the possibilities.</p><div className="contact-actions"><a className="button button-primary button-large" href={contactHref}><Mail size={17} /> Send me an email <ArrowUpRight size={17} /></a><button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Export resume (TXT)</button></div><div className="contact-details">{p.email && <span><Mail size={15} /> {p.email}</span>}{p.phone && <span><Phone size={15} /> {p.phone}</span>}<span><MapPin size={15} /> {p.location}</span></div></div>
-        <div className="contact-side"><div className="contact-orbit"><div className="orbit-core"><Code2 size={36} /></div><span className="orbit-label orbit-label-one">IDEA</span><span className="orbit-label orbit-label-two">BUILD</span><span className="orbit-label orbit-label-three">IMPACT</span></div><div className="social-links"><IconLink href={data.links.linkedin} label="LinkedIn"><Linkedin /></IconLink><IconLink href={data.links.website} label="Website"><Globe /></IconLink><IconLink href={contactHref} label="Email"><Mail /></IconLink></div></div>
+        <div className="contact-content"><span className="eyebrow">06 / YOUR NEXT IDEA STARTS HERE</span><h2>Have a good problem?<br /><span className="gradient-text">Let's solve it.</span></h2><p>Have a project, opportunity, or collaboration in mind? Tell me what you're working on and let's talk through the possibilities.</p><div className="contact-actions"><a className="button button-primary button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); openEditor(); } }}><Mail size={17} /> {email ? 'Send me an email' : 'Add contact email'} <ArrowUpRight size={17} /></a>{p.resumeUrl && <a className="button button-outline button-large" href={p.resumeUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /> View resume <ArrowUpRight size={17} /></a>}<button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Export resume (TXT)</button></div><div className="contact-details">{p.email && <span><Mail size={15} /> {p.email}</span>}{p.phone && <span><Phone size={15} /> {p.phone}</span>}<span><MapPin size={15} /> {p.location}</span></div></div>
+        <div className="contact-side"><div className="contact-orbit"><div className="orbit-core"><Code2 size={36} /></div><span className="orbit-label orbit-label-one">IDEA</span><span className="orbit-label orbit-label-two">BUILD</span><span className="orbit-label orbit-label-three">IMPACT</span></div><div className="social-links"><IconLink href={data.links.linkedin} label="LinkedIn"><Linkedin /></IconLink><IconLink href={data.links.github} label="GitHub profile"><Github /></IconLink><IconLink href={data.links.website} label="Website"><Globe /></IconLink><IconLink href={contactHref} label="Email"><Mail /></IconLink></div></div>
       </section>
     </main>
 
@@ -305,7 +306,7 @@ function App() {
 
     {editing && draft && <div className="editor-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) closeEditor(); }}>
       <section className="editor-panel" role="dialog" aria-modal="true" aria-labelledby="editor-title">
-        <div className="editor-header"><div><span className="eyebrow">YOUR PERSONAL BRAND</span><h2 id="editor-title">Portfolio editor</h2><p>Edit your details here. Save when you're ready to publish the changes in this browser.</p></div><button className="editor-close" onClick={closeEditor} aria-label="Close editor"><X /></button></div>
+        <div className="editor-header"><div><span className="eyebrow">YOUR PERSONAL BRAND</span><h2 id="editor-title">Portfolio editor</h2><p>Update your public-facing details and save a local draft. This static version stores changes only in this browser; it does not publish them for other visitors.</p></div><button className="editor-close" onClick={closeEditor} aria-label="Close editor"><X /></button></div>
         <div className="editor-toolbar"><div className="editor-tabs">{[['profile','Profile'],['links','Links'],['skills','Skills'],['projects','Projects'],['education','Education'],['experience','Experience'],['certifications','Certificates'],['services','Services']].map(([key, label]) => <button key={key} className={cx('editor-tab', activeTab === key && 'active')} onClick={() => { setActiveTab(key); setEditIndex(null); }}>{label}</button>)}</div></div>
         <div className="editor-body">
           {activeTab === 'profile' && <div className="editor-form-grid">
@@ -321,7 +322,7 @@ function App() {
             <Field label="Short headline" value={draft.profile.headline} onChange={v => updateProfile('headline', v)} wide />
             <Field label="About me" value={draft.profile.about} onChange={v => updateProfile('about', v)} multiline wide />
           </div>}
-          {activeTab === 'links' && <div className="editor-form-grid">{[['linkedin','LinkedIn URL'],['website','Personal website URL'],['email','Public contact email']].map(([key, label]) => <Field key={key} label={label} value={draft.links[key] || ''} onChange={v => updateLink(key, v)} />)}<p className="editor-help wide">Use full https:// URLs for your LinkedIn or personal website. Project cards only show live-demo links; source-code links are not displayed.</p></div>}
+          {activeTab === 'links' && <div className="editor-form-grid">{[['linkedin','LinkedIn URL'],['github','GitHub profile URL'],['website','Personal website URL'],['email','Public contact email']].map(([key, label]) => <Field key={key} label={label} value={draft.links[key] || ''} onChange={v => updateLink(key, v)} />)}<p className="editor-help wide">Use full https:// profile URLs. Your GitHub profile can help employers review your work; individual project cards display live demos only, never source-code links.</p></div>}
           {['skills','projects','education','experience','certifications','services'].includes(activeTab) && <div className="editor-list-area">
             <div className="editor-list-head"><div><h3>{sectionLabels[activeTab] || 'Certifications'}</h3><p>{draft[activeTab].length} saved {activeTab} entries</p></div><button className="button button-quiet" onClick={() => { setNewEntry(prev => ({ ...prev, [activeTab]: { ...emptyEntry[activeTab] } })); setEditIndex('new'); }}><Plus size={16} /> Add entry</button></div>
             {editIndex === 'new' && <EntryForm type={activeTab} value={newEntry[activeTab] || emptyEntry[activeTab]} onChange={v => setNewEntry(prev => ({ ...prev, [activeTab]: v }))} onSave={() => { addEntry(activeTab); setEditIndex(null); }} onCancel={() => setEditIndex(null)} />}
