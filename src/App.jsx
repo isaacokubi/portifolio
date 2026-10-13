@@ -53,6 +53,8 @@ function App() {
   const [data, setData] = useState(loadData);
   const [editing, setEditing] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Track the visible portfolio page so the navbar behaves like page navigation.
+  const [currentPage, setCurrentPage] = useState('home');
   const [activeTab, setActiveTab] = useState('profile');
   const [draft, setDraft] = useState(null);
   const [newEntry, setNewEntry] = useState({});
@@ -129,7 +131,8 @@ function App() {
     a.href = url; a.download = `${p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-resume.txt`; a.click(); URL.revokeObjectURL(url);
   };
 
-  const nav = [['About', '#about'], ['Skills', '#skills'], ['Work', '#work'], ['Journey', '#journey'], ['Services', '#services'], ['Contact', '#contact']];
+  const nav = [['Home', 'home'], ['About', 'about'], ['Skills', 'skills'], ['Projects', 'work'], ['Journey', 'journey'], ['Services', 'services'], ['Contact', 'contact']];
+  const navigateTo = (page) => { setCurrentPage(page); setMobileOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const p = data.profile;
   const email = data.links.email || p.email;
   const contactHref = email ? `mailto:${email}` : '#contact';
@@ -137,20 +140,20 @@ function App() {
   return <div className="app-shell">
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
     <header className="site-header">
-      <a className="brand" href="#home" aria-label="Go to home"><span className="brand-mark">io.</span><span>{p.name}<small>SOFTWARE DEVELOPER</small></span></a>
-      <nav className="desktop-nav">{nav.map(([label, href]) => <a key={label} href={href}>{label}</a>)}</nav>
+      <a className="brand" href="#home" onClick={event => { event.preventDefault(); navigateTo('home'); }} aria-label="Go to home"><span className="brand-mark">io.</span><span>{p.name}<small>SOFTWARE DEVELOPER</small></span></a>
+      <nav className="desktop-nav" aria-label="Main navigation">{nav.map(([label, page]) => <a key={label} href={`#${page}`} className={currentPage === page ? 'nav-active' : ''} aria-current={currentPage === page ? 'page' : undefined} onClick={event => { event.preventDefault(); navigateTo(page); }}>{label}</a>)}</nav>
       <div className="header-actions">
         <button className="button button-quiet header-edit" onClick={openEditor}><Pencil size={15} /> Edit portfolio</button>
         <a className="button button-primary header-contact" href={contactHref}>Let's talk <ArrowUpRight size={16} /></a>
         <button className="mobile-menu" aria-label="Toggle navigation" onClick={() => setMobileOpen(v => !v)}>{mobileOpen ? <X /> : <Menu />}</button>
       </div>
-      {mobileOpen && <nav className="mobile-nav">{nav.map(([label, href]) => <a key={label} href={href} onClick={() => setMobileOpen(false)}>{label}</a>)}<button onClick={() => { setMobileOpen(false); openEditor(); }}>Edit portfolio</button></nav>}
+      {mobileOpen && <nav className="mobile-nav" aria-label="Mobile navigation">{nav.map(([label, page]) => <a key={label} href={`#${page}`} className={currentPage === page ? 'nav-active' : ''} aria-current={currentPage === page ? 'page' : undefined} onClick={event => { event.preventDefault(); navigateTo(page); }}>{label}</a>)}<button onClick={() => { setMobileOpen(false); openEditor(); }}>Edit portfolio</button></nav>}
     </header>
 
     {notice && !editing && <div className="toast" role="status"><Check size={16} />{notice}</div>}
 
     <main>
-      <section id="home" className="hero section-wrap">
+      <section id="home" className={cx('hero section-wrap', currentPage !== 'home' && 'page-hidden')}>
         <div className="hero-copy">
           <div className="availability"><span className="status-dot" />{p.availability || 'Open to opportunities'}<span className="availability-line" /></div>
           <p className="hero-kicker">HELLO, I'M {p.name.toUpperCase()}</p>
@@ -176,7 +179,7 @@ function App() {
         <a href="#about" className="scroll-cue"><span className="scroll-wheel" /> Scroll to explore <ArrowDown size={14} /></a>
       </section>
 
-      <section id="about" className="section-wrap section-block">
+      <section id="about" className={cx('section-wrap section-block', currentPage !== 'about' && 'page-hidden')}>
         <SectionHeading number="01" eyebrow="A LITTLE ABOUT ME" title={<>Developer by craft.<br /><span className="muted-heading">Problem-solver by nature.</span></>} detail="I care about the details behind a great digital experience: useful features, clear interfaces, and software that people can depend on." />
         <div className="about-grid">
           <div className="about-note"><span className="quote-mark">“</span><p>{p.about}</p><div className="signature"><span className="signature-line" /> {p.name}</div></div>
@@ -188,7 +191,7 @@ function App() {
         </div>
       </section>
 
-      <section id="skills" className="section-wrap section-block">
+      <section id="skills" className={cx('section-wrap section-block', currentPage !== 'skills' && 'page-hidden')}>
         <SectionHeading number="02" eyebrow="MY TOOLKIT" title={<>Skills that help ideas<br /><span className="muted-heading">become real.</span></>} detail="A growing set of languages, frameworks, and tools I use to build across the stack. Skill levels are editable—set them to reflect your current experience." />
         <div className="skills-layout">
           <div className="skills-intro"><span className="big-number">{String(data.skills.length).padStart(2, '0')}</span><span className="eyebrow">SKILLS & TECHNOLOGIES</span><p>I keep learning and choose tools based on the needs of the project, not just the trend.</p><div className="skills-legend"><span><i className="legend-dot dot-strong" /> Confident</span><span><i className="legend-dot dot-growing" /> Growing</span></div></div>
@@ -196,7 +199,7 @@ function App() {
         </div>
       </section>
 
-      <section id="work" className="section-wrap section-block">
+      <section id="work" className={cx('section-wrap section-block', currentPage !== 'work' && 'page-hidden')}>
         <SectionHeading number="03" eyebrow="SELECTED PROJECTS" title={<>A few things I've<br /><span className="muted-heading">been building.</span></>} detail="Projects are where problem-solving meets practice. Explore the code or open a live demo when one is available." />
         <div className="project-grid">{featuredProjects.map((project, index) => <article className={cx('project-card', index === 0 && 'project-featured')} key={project.title}>
           <div className={cx('project-art', `project-art-${index % 3}`)}><div className="project-art-top"><span>0{index + 1} / PROJECT</span><span className="art-spark"><ArrowUpRight size={20} /></span></div><div className="project-graphic"><div className="graphic-window"><div className="graphic-lines"><i /><i /><i /></div><div className="graphic-panel"><span /><span /><span /></div><div className="graphic-base" /></div><div className="graphic-orb" /></div><span className="project-category">{project.category}</span></div>
@@ -206,7 +209,7 @@ function App() {
         <div className="all-projects-note"><span className="status-dot" /> More experiments and code live on GitHub. <a href={data.links.github || 'https://github.com'} target="_blank" rel="noreferrer">Visit my GitHub <ArrowUpRight size={14} /></a></div>
       </section>
 
-      <section id="journey" className="section-wrap section-block">
+      <section id="journey" className={cx('section-wrap section-block', currentPage !== 'journey' && 'page-hidden')}>
         <SectionHeading number="04" eyebrow="MY JOURNEY" title={<>Learning, building,<br /><span className="muted-heading">moving forward.</span></>} detail="Education gives me a foundation; hands-on projects help me turn knowledge into working software." />
         <div className="journey-grid">
           <div className="journey-column"><div className="column-heading"><span className="column-icon"><GraduationCap /></span><h3>Education</h3></div>{data.education.length ? <div className="timeline">{data.education.map((item, i) => <article className="timeline-item" key={item.qualification + i}><span className="timeline-dot" /><div className="timeline-date">{[item.start, item.end].filter(Boolean).join(' — ') || item.status}</div><h4>{item.qualification}</h4><p className="timeline-place">{item.institution}</p>{item.details && <p className="timeline-description">{item.details}</p>}</article>)}</div> : <p className="empty-inline">Add academic qualifications in the portfolio editor.</p>}</div>
@@ -215,12 +218,12 @@ function App() {
         {data.certifications.length > 0 && <div className="certifications"><h3>Certifications & courses</h3><div className="cert-grid">{data.certifications.map((cert, i) => <div className="cert-card" key={cert.name + i}><span className="cert-icon"><Check size={17} /></span><div><strong>{cert.name}</strong><p>{cert.issuer}{cert.date ? ` · ${cert.date}` : ''}</p>{cert.credential && <a href={cert.credential} target="_blank" rel="noreferrer">View credential <ArrowUpRight size={13} /></a>}</div></div>)}</div></div>}
       </section>
 
-      <section id="services" className="section-wrap section-block">
+      <section id="services" className={cx('section-wrap section-block', currentPage !== 'services' && 'page-hidden')}>
         <SectionHeading number="05" eyebrow="WAYS WE CAN WORK" title={<>Let's build something<br /><span className="muted-heading">useful together.</span></>} detail="From a first website to a workflow that saves your team time, I help turn business needs into digital tools." />
         <div className="services-grid">{data.services.map((service, i) => <article className="service-card" key={service.title}><span className="service-number">0{i + 1}</span><span className="service-arrow"><ArrowUpRight size={19} /></span><h3>{service.title}</h3><p>{service.description}</p></article>)}</div>
       </section>
 
-      <section id="contact" className="section-wrap contact-section">
+      <section id="contact" className={cx('section-wrap contact-section', currentPage !== 'contact' && 'page-hidden')}>
         <div className="contact-glow" />
         <div className="contact-content"><span className="eyebrow">06 / YOUR NEXT IDEA STARTS HERE</span><h2>Have a good problem?<br /><span className="gradient-text">Let's solve it.</span></h2><p>Have a project, opportunity, or collaboration in mind? Tell me what you're working on and let's talk through the possibilities.</p><div className="contact-actions"><a className="button button-primary button-large" href={contactHref}><Mail size={17} /> Send me an email <ArrowUpRight size={17} /></a><button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Download resume</button></div><div className="contact-details">{p.email && <span><Mail size={15} /> {p.email}</span>}{p.phone && <span><Phone size={15} /> {p.phone}</span>}<span><MapPin size={15} /> {p.location}</span></div></div>
         <div className="contact-side"><div className="contact-orbit"><div className="orbit-core"><Code2 size={36} /></div><span className="orbit-label orbit-label-one">IDEA</span><span className="orbit-label orbit-label-two">BUILD</span><span className="orbit-label orbit-label-three">IMPACT</span></div><div className="social-links"><IconLink href={data.links.github} label="GitHub"><Github /></IconLink><IconLink href={data.links.linkedin} label="LinkedIn"><Linkedin /></IconLink><IconLink href={data.links.website} label="Website"><Globe /></IconLink><IconLink href={contactHref} label="Email"><Mail /></IconLink></div></div>
