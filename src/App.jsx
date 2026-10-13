@@ -242,7 +242,7 @@ function App() {
           <div className="hero-meta"><span><MapPin size={15} /> {p.location || 'Available worldwide'}</span><span><Code2 size={15} /> {p.yearsExperience || 'Software development'}</span></div>
         </div>
         <div className="hero-visual portrait-visual">
-<div className="visual-topline"><span>BUILD / LEARN / REPEAT</span><span className="mono">001—∞</span></div>
+<div className="visual-topline"><span className="mono">001—∞</span></div>
           <div className="portrait-frame"><div className="portrait-glow" />
             <div className="portrait-image">{p.portraitUrl ? <img src={p.portraitUrl} alt={'Portrait of ' + p.name} /> : <ProfileAvatar name={p.name} />}</div>
             <div className="portrait-ring portrait-ring-one" /><div className="portrait-ring portrait-ring-two" /><span className="portrait-corner portrait-corner-tl" /><span className="portrait-corner portrait-corner-br" />
