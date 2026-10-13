@@ -213,7 +213,7 @@ function App() {
     <a className="skip-link" href="#main-content">Skip to content</a>
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
     <header className="site-header">
-      <a className="brand" href="#home" onClick={event => { event.preventDefault(); navigateTo('home'); }} aria-label="Go to home"><span className="brand-mark">io.</span><span>{p.name}<small>SOFTWARE DEVELOPER</small></span></a>
+      <a className="brand" href="#home" onClick={event => { event.preventDefault(); navigateTo('home'); }} aria-label="Go to home"><span className="brand-mark">io.</span><span className="brand-label">PORTFOLIO<small>SOFTWARE DEVELOPER</small></span></a>
       <nav className="desktop-nav" aria-label="Main navigation">{nav.map(([label, page]) => <a key={label} href={`#${page}`} className={currentPage === page ? 'nav-active' : ''} aria-current={currentPage === page ? 'page' : undefined} onClick={event => { event.preventDefault(); navigateTo(page); }}>{label}</a>)}</nav>
       <div className="header-actions">
         <button className="button button-quiet header-edit" onClick={openEditor}><Pencil size={15} /> Edit portfolio</button>
