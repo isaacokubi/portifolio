@@ -212,3 +212,73 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .hero-copy{z-index:2}
 @media(max-width:760px){.hero-star-field{opacity:.88}.hero-star-field .falling-star{width:62px}}
 @media(prefers-reduced-motion:reduce){.hero-star-field .twinkle-star,.hero-star-field .falling-star{animation:none!important}.hero-star-field .twinkle-star{opacity:.45}.hero-star-field .falling-star{display:none}}
+
+
+/* Professional portrait treatment: a larger, clean editorial frame that uses the right column. */
+.hero { grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); align-items: center; }
+.hero-visual {
+  position: relative;
+  min-width: 0;
+  min-height: clamp(500px, 47vw, 660px);
+  height: clamp(500px, 47vw, 660px);
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.visual-topline { position: relative; z-index: 4; width: 100%; padding-inline: 5%; }
+.portrait-frame {
+  width: min(100%, 560px);
+  height: calc(100% - 40px);
+  max-height: 590px;
+  min-height: 0;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+}
+.portrait-image {
+  width: 91%;
+  height: 94%;
+  border-radius: 24px;
+  border: 1px solid rgba(201,244,119,.48);
+  background: linear-gradient(145deg, rgba(26,43,70,.98), rgba(7,13,26,.98));
+  box-shadow: 0 24px 70px rgba(0,0,0,.42), 0 0 35px rgba(121,227,236,.14), 0 0 0 8px rgba(121,227,236,.025);
+}
+.portrait-image > img { object-fit: cover; object-position: center 20%; }
+.portrait-ring { border-radius: 30px; }
+.portrait-ring-one { inset: 2% 1%; transform: rotate(-3deg); border-color: rgba(121,227,236,.24); }
+.portrait-ring-two { inset: 5% -1%; transform: rotate(3deg); border-color: rgba(201,244,119,.19); }
+.portrait-glow { inset: 5% 3%; border-radius: 30px; filter: blur(28px); }
+.portrait-corner-tl { top: 1%; left: 1%; }
+.portrait-corner-br { right: 1%; bottom: 1%; }
+.floating-card.card-top { top: 15%; right: -1%; }
+.floating-card.card-bottom { bottom: 11%; left: -2%; }
+@media (min-width: 1400px) {
+  .hero { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); }
+  .hero-visual { min-height: 620px; height: 620px; }
+}
+@media (max-width: 1000px) {
+  .hero { grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); }
+  .hero-visual { min-height: 460px; height: 460px; }
+  .portrait-frame { width: 100%; }
+  .portrait-image { width: 92%; height: 92%; }
+  .floating-card.card-top { right: -2%; }
+  .floating-card.card-bottom { left: -2%; }
+}
+@media (max-width: 760px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-visual { width: 100%; min-height: 390px; height: 390px; margin-top: 10px; overflow: hidden; }
+  .visual-topline { padding-inline: 3%; }
+  .portrait-frame { width: min(100%, 420px); height: 350px; }
+  .portrait-image { width: 88%; height: 94%; border-radius: 20px; }
+  .portrait-ring-one { inset: 2% 2%; }
+  .portrait-ring-two { inset: 5% 0; }
+  .floating-card.card-top { top: 14%; right: 0; }
+  .floating-card.card-bottom { bottom: 8%; left: 0; }
+}
+@media (max-width: 420px) {
+  .hero-visual { min-height: 350px; height: 350px; }
+  .portrait-frame { height: 315px; }
+  .portrait-image { width: 90%; height: 93%; border-radius: 17px; }
+  .floating-card { padding: 10px 11px; }
+}
