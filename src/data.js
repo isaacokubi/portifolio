@@ -15,6 +15,7 @@ export const starterData = {
   },
   links: {
     linkedin: '',
+    github: '',
     website: '',
     email: '',
   },
