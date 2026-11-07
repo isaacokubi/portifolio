@@ -32,7 +32,7 @@ async function hashPassword(password) {
 // Blank templates ensure each new editor entry starts with the fields expected by its section.
 const emptyEntry = {
   skills: { name: '', level: 'Intermediate', group: 'General' },
-  projects: { title: '', category: 'Web application', description: '', stack: '', demo: '', repo: '', image: '', featured: false },
+  projects: { title: '', category: 'Web application', description: '', stack: '', demo: '', repo: '', image: '', screenshots: [], featured: false },
   education: { qualification: '', institution: '', start: '', end: '', status: 'Completed', details: '' },
   experience: { role: '', company: '', start: '', end: '', location: '', details: '' },
   certifications: { name: '', issuer: '', date: '', credential: '' },
@@ -63,6 +63,7 @@ function loadData() {
         ...saved,
         ...project,
         image: saved?.image || project.image,
+        screenshots: Array.isArray(saved?.screenshots) ? saved.screenshots : (project.screenshots || []),
         featured: saved?.featured ?? project.featured,
       };
     });
@@ -134,6 +135,45 @@ function ImageUploadField({ label, value, onChange, wide = false }) {
         <small>JPG, PNG, or WebP · max 10 MB before compression</small>{error && <small className="image-upload-error" role="alert">{error}</small>}
       </div><input ref={inputRef} className="sr-only" type="file" accept="image/*" onChange={handleFile} />
     </div>
+  </div>;
+}
+// Multi-image project gallery uploader. Images are compressed before being stored in the local portfolio draft.
+function ProjectScreenshotsField({ value = [], onChange }) {
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+  const screenshots = Array.isArray(value) ? value : [];
+  const handleFiles = async event => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    if (screenshots.length + files.length > 8) {
+      setError('You can add up to 8 screenshots per project.');
+      event.target.value = '';
+      return;
+    }
+    try {
+      const uploaded = await Promise.all(files.map(compressImage));
+      onChange([...screenshots, ...uploaded]);
+      setError('');
+    } catch (uploadError) {
+      setError(uploadError.message || 'One or more screenshots could not be uploaded.');
+    }
+    event.target.value = '';
+  };
+  return <div className="field field-wide project-screenshots-field">
+    <span>Project screenshots</span>
+    <div className="screenshot-upload-toolbar">
+      <p>Add up to 8 real screenshots of the application. They will appear in the public project card after the updated portfolio is published.</p>
+      <button type="button" className="button button-quiet" onClick={() => inputRef.current?.click()}><Upload size={15} /> Add screenshots</button>
+      <input ref={inputRef} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={handleFiles} />
+    </div>
+    {screenshots.length > 0 ? <div className="screenshot-upload-grid">
+      {screenshots.map((src, index) => <div className="screenshot-upload-item" key={index}>
+        <img src={src} alt={`Project screenshot ${index + 1}`} />
+        <span>Screenshot {index + 1}</span>
+        <button type="button" aria-label={`Remove screenshot ${index + 1}`} onClick={() => { onChange(screenshots.filter((_, i) => i !== index)); setError(''); }}><X size={14} /></button>
+      </div>)}
+    </div> : <div className="screenshot-upload-empty"><Upload size={20} /><span>No screenshots added yet</span><small>PNG, JPG or WebP · up to 8 images · 10 MB per image before compression</small></div>}
+    {error && <small className="image-upload-error" role="alert">{error}</small>}
   </div>;
 }
 // Draw a lightweight inline SVG avatar and derive its initials from the displayed profile name.
@@ -599,7 +639,8 @@ function App() {
       <section id="work" className={cx('section-wrap section-block', currentPage !== 'work' && 'page-hidden')}>
         <SectionHeading number="03" eyebrow="SELECTED PROJECTS" title={<>A few things I've<br /><span className="muted-heading">been building.</span></>} detail="Projects are where problem-solving meets practice. Open a live demo when one is available." />
         <div className="project-grid">{featuredProjects.map((project, index) => <article className={cx('project-card', index === 0 && 'project-featured')} key={project.title}>
-          <div className={cx('project-art', `project-art-${index % 3}`)}>{project.image && <img className="project-cover-image" src={project.image} alt={project.title + ' project preview'} loading="lazy" />}<div className="project-art-top"><span>0{index + 1} / PROJECT</span><span className="art-spark"><ArrowUpRight size={20} /></span></div><div className="project-graphic"><div className="graphic-window"><div className="graphic-lines"><i /><i /><i /></div><div className="graphic-panel"><span /><span /><span /></div><div className="graphic-base" /></div><div className="graphic-orb" /></div><span className="project-category">{project.category}</span></div>
+          <div className={cx('project-art', `project-art-${index % 3}')}>{(project.screenshots?.[0] || project.image) && <img className="project-cover-image" src={project.screenshots?.[0] || project.image} alt={project.title + ' application screenshot'} loading="lazy" />}<div className="project-art-top"><span>0{index + 1} / PROJECT</span><span className="art-spark"><ArrowUpRight size={20} /></span></div><div className="project-graphic"><div className="graphic-window"><div className="graphic-lines"><i /><i /><i /></div><div className="graphic-panel"><span /><span /><span /></div><div className="graphic-base" /></div><div className="graphic-orb" /></div><span className="project-category">{project.category}</span></div>
+          {project.screenshots?.length > 1 && <div className="project-screenshot-strip" aria-label={project.title + ' screenshots'}>{project.screenshots.slice(1).map((src, screenshotIndex) => <a key={screenshotIndex} href={src} target="_blank" rel="noreferrer" aria-label={`Open ${project.title} screenshot ${screenshotIndex + 2}`}><img src={src} alt={project.title + ' screenshot ' + (screenshotIndex + 2)} loading="lazy" /></a>)}</div>}
           <div className="project-info"><div className="project-title-row"><h3>{project.title}</h3><span className="project-index">0{index + 1}</span></div><p>{project.description}</p><div className="stack-list">{(project.stack || '').split(',').map(s => s.trim()).filter(Boolean).map(s => <span key={s}>{s}</span>)}</div><div className="project-links">{project.demo && <a href={project.demo} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Live demo <ArrowUpRight size={14} /></a>}{project.repo && <a href={project.repo} target="_blank" rel="noreferrer"><Github size={15} /> View source <ArrowUpRight size={14} /></a>}</div></div>
         </article>)}
         {featuredProjects.length === 0 && <div className="empty-state">Your featured projects will appear here. Use <strong>Edit portfolio</strong> to add and feature projects.</div>}</div>
@@ -696,13 +737,13 @@ function Field({ label, value, onChange, type = 'text', multiline = false, wide 
 function EntryForm({ type, value, onChange, onSave, onCancel }) {
   const fields = {
     skills: [['name','Skill name'],['level','Level'],['group','Category']],
-    projects: [['title','Project title'],['category','Category'],['description','Description','textarea'],['stack','Tech stack (comma separated)'],['demo','Live demo URL (optional)'],['repo','GitHub repository URL (optional)'],['image','Project cover image','image'],['featured','Show on portfolio','checkbox']],
+    projects: [['title','Project title'],['category','Category'],['description','Description','textarea'],['stack','Tech stack (comma separated)'],['demo','Live demo URL (optional)'],['repo','GitHub repository URL (optional)'],['image','Project cover image','image'],['screenshots','Project screenshots','screenshots'],['featured','Show on portfolio','checkbox']],
     education: [['qualification','Qualification'],['institution','Institution'],['start','Start date/year'],['end','End date/year'],['status','Status'],['details','Details','textarea']],
     experience: [['role','Role / position'],['company','Company / organisation'],['start','Start date/year'],['end','End date/year or Present'],['location','Location'],['details','Responsibilities / achievements','textarea']],
     certifications: [['name','Certificate / course name'],['issuer','Issuing organisation'],['date','Date earned'],['credential','Credential URL']],
     services: [['title','Service title'],['description','Description','textarea'],['image','Service image','image']],
   }[type] || [];
-  return <div className="entry-form">{fields.map(([key, label, kind]) => kind === 'image' ? <ImageUploadField key={key} label={label} value={value[key] || ''} onChange={image => onChange({ ...value, [key]: image })} wide /> : <label className={cx('field', (kind === 'textarea' || key === 'description') && 'field-wide')} key={key}><span>{label}</span>{kind === 'textarea' ? <textarea rows={3} value={value[key] || ''} onChange={e => onChange({ ...value, [key]: e.target.value })} /> : kind === 'checkbox' ? <input type="checkbox" checked={Boolean(value[key])} onChange={e => onChange({ ...value, [key]: e.target.checked })} /> : <input value={value[key] || ''} onChange={e => onChange({ ...value, [key]: e.target.value })} />}</label>)}<div className="entry-form-actions"><button className="button button-quiet" onClick={onCancel}>Cancel</button><button className="button button-primary" onClick={onSave}><Check size={15} /> Done</button></div></div>;
+  return <div className="entry-form">{fields.map(([key, label, kind]) => kind === 'image' ? <ImageUploadField key={key} label={label} value={value[key] || ''} onChange={image => onChange({ ...value, [key]: image })} wide /> : kind === 'screenshots' ? <ProjectScreenshotsField key={key} value={value[key] || []} onChange={screenshots => onChange({ ...value, [key]: screenshots })} /> : <label className={cx('field', (kind === 'textarea' || key === 'description') && 'field-wide')} key={key}><span>{label}</span>{kind === 'textarea' ? <textarea rows={3} value={value[key] || ''} onChange={e => onChange({ ...value, [key]: e.target.value })} /> : kind === 'checkbox' ? <input type="checkbox" checked={Boolean(value[key])} onChange={e => onChange({ ...value, [key]: e.target.checked })} /> : <input value={value[key] || ''} onChange={e => onChange({ ...value, [key]: e.target.value })} />}</label>)}<div className="entry-form-actions"><button className="button button-quiet" onClick={onCancel}>Cancel</button><button className="button button-primary" onClick={onSave}><Check size={15} /> Done</button></div></div>;
 }
 
 export default App;
