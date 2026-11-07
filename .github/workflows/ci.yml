@@ -23,3 +23,5 @@ jobs:
         run: npm install
       - name: Build production site
         run: npm run build
+      - name: Validate Vercel CV API syntax
+        run: node --check api/cv.js
