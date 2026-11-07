@@ -715,7 +715,7 @@ function App() {
     {/* Account overlay appears only while login or account settings are open. */}
     {authView && <div className="editor-backdrop auth-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeAuth(); }}>
       <section className="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-        <div className="editor-header"><div><span className="eyebrow">LOCAL EDITOR ACCESS</span><h2 id="auth-title">{authView === 'login' ? 'Admin login' : 'Account settings'}</h2><p>{authView === 'login' ? 'Sign in to manage this browser's local portfolio draft.' : 'Change the email address and password used for this browser.'}</p></div><button className="editor-close" onClick={closeAuth} aria-label="Close dialog"><X /></button></div>
+        <div className="editor-header"><div><span className="eyebrow">LOCAL EDITOR ACCESS</span><h2 id="auth-title">{authView === 'login' ? 'Admin login' : 'Account settings'}</h2><p>{authView === 'login' ? "Sign in to manage this browser's local portfolio draft." : 'Change the email address and password used for this browser.'}</p></div><button className="editor-close" onClick={closeAuth} aria-label="Close dialog"><X /></button></div>
         {authError && <p className="auth-error" role="alert">{authError}</p>}
         {authView === 'login' ? <form className="auth-form" onSubmit={handleLogin}>
           <Field label="Email address" value={loginEmail} onChange={setLoginEmail} type="email" />
