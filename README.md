@@ -26,8 +26,8 @@ Project descriptions are summaries, not claims that every feature or third-party
 - Responsive portfolio sections for About, Skills, Projects, Education, Experience, Certifications, Services and Contact.
 - Individual project cards support live-demo and direct GitHub source-code links, plus multiple uploaded application screenshots.
 - The editor accepts up to 8 JPG, PNG, or WebP screenshots per project, compresses them in the browser, previews them, and lets you remove or replace them. The first screenshot becomes the project cover; additional screenshots appear in a scrollable gallery.
-- The profile editor accepts one PDF CV upload up to 5 MB, shows its filename, and supports replacing or removing it. When present, the uploaded PDF is offered as the primary Download CV link; the generated profile-based PDF remains available as a separate option.
-- To publish uploaded screenshots on the public site, save the editor changes, export the portfolio JSON backup, then commit the exported project screenshot data through `src/data.js` and redeploy. The current static editor stores uploads in the current browser only; it does not upload files to a server or publish them automatically.
+- The profile editor uploads one PDF CV (up to 4 MB) to Vercel Blob storage, stores its public URL with the profile, and provides replace/remove controls. The uploaded PDF becomes the public Download CV link; the profile-generated PDF remains available separately.
+- Project screenshots are still browser-local. To publish them, save the editor changes, export the portfolio JSON backup, then commit the exported screenshot data through `src/data.js` and redeploy.
 - Downloadable PDF résumé generated in the browser from the displayed profile data.
 - Browser-local portfolio editor with JSON import/export backup.
 - Basic SEO metadata, social preview metadata, keyboard focus styles, skip navigation and reduced-motion support.
@@ -50,7 +50,16 @@ The production build is written to `dist/`. Vercel should use the repository roo
 
 ## Editing and publishing content
 
-The built-in editor saves portfolio changes, uploaded CV PDF data, and screenshot data to `localStorage` in the current browser only. It does **not** update GitHub, synchronize to other browsers, or publish changes to the live website. A locally uploaded CV is downloadable again in that same browser; to make it public for all visitors, host the PDF at a permanent HTTPS URL and set the Resume URL field, or add a server-backed upload service. To publish a permanent update, edit `src/data.js`, commit and push the change to `main`, then allow the connected deployment platform to rebuild the site.
+The built-in editor saves portfolio text, links, and project screenshots in `localStorage` in the current browser; those edits do **not** automatically update GitHub or publish. CV files are different: they are uploaded to Vercel Blob and their public HTTPS URL is saved with the profile, so visitors on other devices can download the file once the profile changes are saved.
+
+### Configure persistent CV uploads on Vercel
+
+1. In the Vercel project, create a Blob store under **Storage** and connect it to this portfolio project. Vercel supplies `BLOB_READ_WRITE_TOKEN` to the deployment environment.
+2. Add an environment variable named `PORTFOLIO_CV_UPLOAD_SECRET` with a long, random secret (at least 32 random characters). Keep it private; do not commit the value to GitHub.
+3. Redeploy the project so the `/api/cv` function receives both environment variables.
+4. Open the portfolio editor, go to Profile, enter the same secret in **CV upload key**, choose the PDF, and save the profile changes. The uploaded file is stored in Blob and the public URL is shown as Download CV to all visitors.
+
+The upload API checks the secret server-side, accepts PDF files only, verifies the PDF signature, and enforces a 4 MB limit. The secret is held only in the editor component's active session and is not written to portfolio data. Replacing a CV uploads a new file and updates the profile link; old versions can be removed from the Vercel Blob dashboard. Project screenshot uploads remain browser-local until deliberately published through the source data and redeployed. To publish a permanent update to portfolio content, edit `src/data.js`, commit and push the change to `main`, then allow Vercel to rebuild the site.
 
 The editor's browser-side login is only a convenience gate for the local editor UI. It is **not server-side authentication** and must not be used to protect confidential information or administrative services.
 
@@ -68,7 +77,7 @@ Use the JSON export function to back up locally edited content before clearing b
 
 ## Current limitations
 
-- The site is a static frontend; there is no backend CMS or cross-device editor synchronization.
+- The site has no full backend CMS or cross-device editor synchronization. CV file storage uses a Vercel serverless endpoint and Blob storage; other editor content remains browser-local.
 - The editor's login is client-side only.
 - There is no automated test suite configured yet; the CI workflow currently verifies that the Vite production build succeeds.
 - Public demo availability and live payment acceptance must be verified independently; a repository link or successful build does not prove production operation.
