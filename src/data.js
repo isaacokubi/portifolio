@@ -44,6 +44,7 @@ export const starterData = {
       demo: 'https://chatify-mobile.vercel.app/',
       repo: 'https://github.com/isaacokubi/chatify',
       image: '',
+      screenshots: [],
       featured: true,
     },
     {
