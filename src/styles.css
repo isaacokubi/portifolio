@@ -640,3 +640,26 @@ html{scroll-behavior:smooth;scroll-padding-top:110px}body{background:var(--bg);c
 @media(max-width:900px){.site-header{min-height:78px}.desktop-nav,.header-actions .login-button,.header-actions .header-edit,.header-actions .account-settings-button,.header-actions .account-logout-button{display:none}.hero{min-height:auto;padding-top:64px;padding-bottom:86px}.section-heading{align-items:start;flex-direction:column;gap:12px}.section-heading>p{max-width:620px}.contact-section{margin-left:20px;margin-right:20px}}
 @media(max-width:600px){.site-header{padding:0 17px}.brand-mark{width:41px;height:41px}.brand-label{font-size:12px}.header-contact{display:none}.hero{padding:55px 20px 80px}.hero h1{font-size:clamp(43px,12vw,62px)}.hero-actions{align-items:stretch;flex-direction:column}.hero-actions .button{width:100%}.hero-meta{flex-wrap:wrap;gap:12px 20px}.section-wrap{padding-left:20px;padding-right:20px}.section-block{padding-top:66px;padding-bottom:66px}.section-heading h2{font-size:clamp(33px,9vw,44px)}.about-note,.skills-intro,.journey-column{padding:23px}.project-info{padding:22px}.project-info h3{font-size:23px}.service-card{min-height:205px;padding:24px}.contact-section{padding:30px 22px;border-radius:22px}.contact-content h2{font-size:39px}.contact-actions{align-items:stretch;flex-direction:column}.contact-actions .button{width:100%;white-space:normal}.site-footer{padding:25px 20px 30px;flex-wrap:wrap}.site-footer p{width:calc(100% - 65px)}.site-footer>span{width:100%}.back-top{margin-left:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+
+/* Project screenshot upload and public gallery */
+.project-cover-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.project-art:has(.project-cover-image) .project-art-top{z-index:3}
+.project-art:has(.project-cover-image) .project-graphic{display:none}
+.project-art:has(.project-cover-image) .project-category{z-index:3;background:rgba(8,13,25,.88);color:#eaf2ff;border:1px solid rgba(255,255,255,.2)}
+.project-screenshot-strip{display:flex;gap:8px;overflow-x:auto;padding:12px 18px;background:#0c1525;border-top:1px solid rgba(174,199,230,.12)}
+.project-screenshot-strip a{display:block;flex:0 0 112px;height:70px;overflow:hidden;border:1px solid rgba(174,199,230,.22);border-radius:8px}
+.project-screenshot-strip img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .2s}
+.project-screenshot-strip a:hover img{transform:scale(1.06)}
+.screenshot-upload-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px;border:1px solid rgba(174,199,230,.18);border-radius:12px;background:rgba(255,255,255,.025)}
+.screenshot-upload-toolbar p{flex:1 1 260px;margin:0;color:#b7c7dc;font-size:11px;line-height:1.7}
+.screenshot-upload-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px}
+.screenshot-upload-item{position:relative;min-width:0;overflow:hidden;border:1px solid rgba(174,199,230,.2);border-radius:10px;background:#0a1322}
+.screenshot-upload-item img{display:block;width:100%;height:90px;object-fit:cover}
+.screenshot-upload-item>span{display:block;padding:7px 32px 7px 9px;color:#cbd8e9;font-size:10px}
+.screenshot-upload-item button{position:absolute;right:6px;bottom:5px;width:24px;height:24px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.2);border-radius:7px;background:#26344c;color:#fff}
+.screenshot-upload-empty{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:12px;padding:18px;border:1px dashed rgba(174,199,230,.25);border-radius:10px;color:#b7c7dc;font-size:11px}
+.screenshot-upload-empty svg{color:var(--cyan)}
+.screenshot-upload-empty small{flex-basis:100%;padding-left:29px;color:#8fa2bd}
+.project-screenshots-field{min-width:0}
+@media(max-width:600px){.project-screenshot-strip{padding:10px 12px}.project-screenshot-strip a{flex-basis:94px;height:62px}.screenshot-upload-toolbar{align-items:stretch}.screenshot-upload-toolbar .button{width:100%}}
