@@ -80,6 +80,8 @@ function loadData() {
         phone: parsed.profile?.phone || starterData.profile.phone,
         portraitUrl: parsed.profile?.portraitUrl || starterData.profile.portraitUrl,
         resumeUrl: parsed.profile?.resumeUrl || starterData.profile.resumeUrl,
+        resumeFileData: parsed.profile?.resumeFileData || starterData.profile.resumeFileData || '',
+        resumeFileName: parsed.profile?.resumeFileName || starterData.profile.resumeFileName || '',
       },
       links: { ...starterData.links, ...(parsed.links || {}) },
       projects: [...currentProjects, ...customProjects],
@@ -177,11 +179,13 @@ function ProjectScreenshotsField({ value = [], onChange }) {
   </div>;
 }
 // Draw a lightweight inline SVG avatar and derive its initials from the displayed profile name.
-// PDF CV uploader for the browser-local portfolio editor. The file is retained as a data URL for later download.
+// Upload a PDF CV to the Vercel Blob-backed API and keep only its public URL in portfolio data.
 function CvUploadField({ value, fileName, onChange }) {
   const [error, setError] = useState('');
+  const [uploadKey, setUploadKey] = useState('');
+  const [busy, setBusy] = useState(false);
   const inputRef = useRef(null);
-  const handleFile = event => {
+  const handleFile = async event => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
@@ -194,27 +198,70 @@ function CvUploadField({ value, fileName, onChange }) {
       event.target.value = '';
       return;
     }
-    const reader = new FileReader();
-    reader.onerror = () => setError('The CV file could not be read.');
-    reader.onload = () => {
-      onChange(String(reader.result), file.name);
+    if (!uploadKey.trim()) {
+      setError('Enter the CV upload key configured in your Vercel environment variables.');
+      event.target.value = '';
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      const response = await fetch('/api/cv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/pdf', 'X-Portfolio-Upload-Key': uploadKey.trim(), 'X-CV-Filename': file.name },
+        body: file,
+      });
+      const result = await response.json();
+      if (!response.ok || !result.url) throw new Error(result.error || 'The CV upload failed.');
+      onChange(result.url, file.name);
       setError('');
-    };
-    reader.readAsDataURL(file);
-    event.target.value = '';
+    } catch (uploadError) {
+      setError(uploadError.message || 'The CV could not be uploaded. Check the deployment configuration.');
+    } finally {
+      setBusy(false);
+      event.target.value = '';
+    }
+  };
+  const removeFile = async () => {
+    if (!value) return;
+    if (value.startsWith('data:')) {
+      onChange('', '');
+      return;
+    }
+    if (!uploadKey.trim()) {
+      setError('Enter the CV upload key before removing the hosted CV.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      const response = await fetch('/api/cv', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'X-Portfolio-Upload-Key': uploadKey.trim() },
+        body: JSON.stringify({ url: value }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'The hosted CV could not be removed.');
+      onChange('', '');
+    } catch (removeError) {
+      setError(removeError.message || 'The CV could not be removed.');
+    } finally {
+      setBusy(false);
+    }
   };
   return <div className="field field-wide cv-upload-field">
     <span>Upload CV (PDF)</span>
     <div className="cv-upload-control">
-      <div className="cv-upload-file"><FileText size={22} /><div><strong>{fileName || 'No CV uploaded'}</strong><small>{value ? 'Ready to download in this browser' : 'PDF only · maximum 5 MB'}</small></div></div>
+      <div className="cv-upload-file"><FileText size={22} /><div><strong>{fileName || 'No CV uploaded'}</strong><small>{value ? 'Hosted PDF · public download link' : 'PDF only · maximum 5 MB'}</small></div></div>
       <div className="cv-upload-actions">
-        <button type="button" className="button button-quiet" onClick={() => inputRef.current?.click()}><Upload size={15} /> {value ? 'Replace CV' : 'Choose CV PDF'}</button>
-        {value && <button type="button" className="button button-outline" onClick={() => { onChange('', ''); setError(''); }}>Remove CV</button>}
+        <button type="button" className="button button-quiet" disabled={busy} onClick={() => inputRef.current?.click()}><Upload size={15} /> {busy ? 'Please wait…' : value ? 'Replace CV' : 'Upload CV PDF'}</button>
+        {value && <button type="button" className="button button-outline" disabled={busy} onClick={removeFile}>Remove CV</button>}
       </div>
       <input ref={inputRef} className="sr-only" type="file" accept="application/pdf,.pdf" onChange={handleFile} />
     </div>
+    <label className="cv-upload-key"><span>CV upload key</span><input type="password" autoComplete="off" value={uploadKey} onChange={event => setUploadKey(event.target.value)} placeholder="Enter the Vercel CV upload key" /></label>
+    <small className="editor-help">Set PORTFOLIO_CV_UPLOAD_SECRET in Vercel and enter the same value here when uploading or removing a CV. The key is kept only in this editor session; the PDF itself is stored in Vercel Blob and its public URL is saved with your profile.</small>
     {error && <small className="image-upload-error" role="alert">{error}</small>}
-    <small className="editor-help">The upload is saved in this browser's portfolio data. To make it available to all visitors, publish the CV through a permanent HTTPS file URL or a server-backed upload service.</small>
   </div>;
 }
 function ProfileAvatar({ name }) {
