@@ -6,10 +6,10 @@ Personal portfolio for **Isaac Baraka Ogubi**, a Kenya-based full-stack software
 
 | Project | What it demonstrates | Live demo | Source |
 |---|---|---|---|
-| Chatify | Flutter mobile client, Node.js/Express API, Socket.IO real-time messaging, conversational memory and message expiry | Demo link to be added after public deployment is verified | [GitHub](https://github.com/isaacokubi/chatify) |
+| Chatify | Flutter mobile client, Node.js/Express API, Socket.IO real-time messaging, conversational memory and message expiry | [Live demo](https://chatify-mobile.vercel.app/) | [GitHub](https://github.com/isaacokubi/chatify) |
 | Hussein Mboya Tours | Multi-tenant travel operations, bookings, tenant workspaces, finance and payment workflows | [Live site](https://hussein-mboya-tours.vercel.app/) | [GitHub](https://github.com/isaacokubi/hussein-mboya-tours) |
 | BookHub | Book discovery and marketplace workflows, catalogue, cart and orders | [Live demo](https://bookhub-swart.vercel.app/) | [GitHub](https://github.com/isaacokubi/bookhub) |
-| AngelsHome | School management workflows covering learners, administration, staff, academics, parent communication and fees | Demo link to be added after public deployment is verified | [GitHub](https://github.com/isaacokubi/angelshome) |
+| AngelsHome | School management workflows covering learners, administration, staff, academics, parent communication and fees | [Live demo](https://angelshome.vercel.app/) | [GitHub](https://github.com/isaacokubi/angelshome) |
 
 Project descriptions are summaries, not claims that every feature or third-party payment flow has passed live production acceptance. Refer to each project's repository documentation for current implementation and verification status.
 
