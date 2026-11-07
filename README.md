@@ -26,6 +26,7 @@ Project descriptions are summaries, not claims that every feature or third-party
 - Responsive portfolio sections for About, Skills, Projects, Education, Experience, Certifications, Services and Contact.
 - Individual project cards support live-demo and direct GitHub source-code links, plus multiple uploaded application screenshots.
 - The editor accepts up to 8 JPG, PNG, or WebP screenshots per project, compresses them in the browser, previews them, and lets you remove or replace them. The first screenshot becomes the project cover; additional screenshots appear in a scrollable gallery.
+- The profile editor accepts one PDF CV upload up to 5 MB, shows its filename, and supports replacing or removing it. When present, the uploaded PDF is offered as the primary Download CV link; the generated profile-based PDF remains available as a separate option.
 - To publish uploaded screenshots on the public site, save the editor changes, export the portfolio JSON backup, then commit the exported project screenshot data through `src/data.js` and redeploy. The current static editor stores uploads in the current browser only; it does not upload files to a server or publish them automatically.
 - Downloadable PDF résumé generated in the browser from the displayed profile data.
 - Browser-local portfolio editor with JSON import/export backup.
@@ -49,7 +50,7 @@ The production build is written to `dist/`. Vercel should use the repository roo
 
 ## Editing and publishing content
 
-The built-in editor saves portfolio changes to `localStorage` in the current browser only. It does **not** update GitHub, synchronize to other browsers, or publish changes to the live website. To publish a permanent update, edit `src/data.js`, commit and push the change to `main`, then allow the connected deployment platform to rebuild the site.
+The built-in editor saves portfolio changes, uploaded CV PDF data, and screenshot data to `localStorage` in the current browser only. It does **not** update GitHub, synchronize to other browsers, or publish changes to the live website. A locally uploaded CV is downloadable again in that same browser; to make it public for all visitors, host the PDF at a permanent HTTPS URL and set the Resume URL field, or add a server-backed upload service. To publish a permanent update, edit `src/data.js`, commit and push the change to `main`, then allow the connected deployment platform to rebuild the site.
 
 The editor's browser-side login is only a convenience gate for the local editor UI. It is **not server-side authentication** and must not be used to protect confidential information or administrative services.
 
