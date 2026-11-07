@@ -663,3 +663,13 @@ html{scroll-behavior:smooth;scroll-padding-top:110px}body{background:var(--bg);c
 .screenshot-upload-empty small{flex-basis:100%;padding-left:29px;color:#8fa2bd}
 .project-screenshots-field{min-width:0}
 @media(max-width:600px){.project-screenshot-strip{padding:10px 12px}.project-screenshot-strip a{flex-basis:94px;height:62px}.screenshot-upload-toolbar{align-items:stretch}.screenshot-upload-toolbar .button{width:100%}}
+
+
+/* Uploaded CV control */
+.cv-upload-control{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:15px;border:1px solid rgba(174,199,230,.18);border-radius:12px;background:rgba(255,255,255,.025)}
+.cv-upload-file{display:flex;align-items:center;gap:12px;min-width:0;color:var(--cyan)}
+.cv-upload-file div{display:grid;gap:4px;min-width:0}
+.cv-upload-file strong{overflow-wrap:anywhere;color:#edf4ff;font-size:12px}
+.cv-upload-file small,.cv-upload-field>.editor-help{color:#9fb0c8;font-size:10px;line-height:1.6}
+.cv-upload-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:600px){.cv-upload-control,.cv-upload-actions{align-items:stretch}.cv-upload-actions .button{width:100%}}

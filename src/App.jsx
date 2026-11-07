@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ArrowDown, ArrowDownRight, ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, Github,
+  ArrowDown, ArrowDownRight, ArrowRight, ArrowUpRight, BriefcaseBusiness, Check, Github, FileText,
   Code2, Download, ExternalLink, FileJson, GraduationCap,
   HeartHandshake, Layers3, Mail, MapPin, Menu, MessageCircle, Pencil, Plus,
   Send, Sparkles, Trash2, X, Upload, Globe, Linkedin, Phone, Save, RotateCcw, LogIn, LogOut, LockKeyhole, ShieldCheck,
@@ -177,6 +177,46 @@ function ProjectScreenshotsField({ value = [], onChange }) {
   </div>;
 }
 // Draw a lightweight inline SVG avatar and derive its initials from the displayed profile name.
+// PDF CV uploader for the browser-local portfolio editor. The file is retained as a data URL for later download.
+function CvUploadField({ value, fileName, onChange }) {
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+  const handleFile = event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setError('Choose a PDF file for your CV.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Choose a CV smaller than 5 MB.');
+      event.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => setError('The CV file could not be read.');
+    reader.onload = () => {
+      onChange(String(reader.result), file.name);
+      setError('');
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  };
+  return <div className="field field-wide cv-upload-field">
+    <span>Upload CV (PDF)</span>
+    <div className="cv-upload-control">
+      <div className="cv-upload-file"><FileText size={22} /><div><strong>{fileName || 'No CV uploaded'}</strong><small>{value ? 'Ready to download in this browser' : 'PDF only · maximum 5 MB'}</small></div></div>
+      <div className="cv-upload-actions">
+        <button type="button" className="button button-quiet" onClick={() => inputRef.current?.click()}><Upload size={15} /> {value ? 'Replace CV' : 'Choose CV PDF'}</button>
+        {value && <button type="button" className="button button-outline" onClick={() => { onChange('', ''); setError(''); }}>Remove CV</button>}
+      </div>
+      <input ref={inputRef} className="sr-only" type="file" accept="application/pdf,.pdf" onChange={handleFile} />
+    </div>
+    {error && <small className="image-upload-error" role="alert">{error}</small>}
+    <small className="editor-help">The upload is saved in this browser's portfolio data. To make it available to all visitors, publish the CV through a permanent HTTPS file URL or a server-backed upload service.</small>
+  </div>;
+}
 function ProfileAvatar({ name }) {
   const initials = (name || 'Developer').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase();
   return <div className="avatar-illustration" role="img" aria-label={name + ' profile illustration'}>
@@ -597,7 +637,7 @@ function App() {
           <div className="hero-actions">
             <a className="button button-primary button-large" href="#work" onClick={event => { event.preventDefault(); navigateTo("work"); }}>Explore my work <ArrowDownRight size={18} /></a>
             <a className="button button-outline button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); navigateTo("contact"); } }}><Mail size={17} /> Get in touch</a>
-            <button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Download CV</button>
+            {p.resumeFileData ? <a className="button button-outline button-large" href={p.resumeFileData} download={p.resumeFileName || 'Isaac-Baraka-Ogubi-CV.pdf'}><Download size={17} /> Download CV</a> : <button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Download CV</button>}
           </div>
           <div className="hero-meta"><span><MapPin size={15} /> {p.location || 'Available worldwide'}</span><span><Code2 size={15} /> {p.yearsExperience || 'Software development'}</span></div>
         </div>
@@ -665,7 +705,7 @@ function App() {
       {/* Contact section provides the preferred email route and social profile links. */}
       <section id="contact" className={cx('section-wrap contact-section', currentPage !== 'contact' && 'page-hidden')}>
         <div className="contact-glow" />
-        <div className="contact-content"><span className="eyebrow">06 / YOUR NEXT IDEA STARTS HERE</span><h2>Have a good problem?<br /><span className="gradient-text">Let's solve it.</span></h2><p>Have a project, opportunity, or collaboration in mind? Tell me what you're working on and let's talk through the possibilities.</p><div className="contact-actions"><a className="button button-primary button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); openEditor(); } }}><Mail size={17} /> {email ? 'Send me an email' : 'Add contact email'} <ArrowUpRight size={17} /></a>{p.resumeUrl && <a className="button button-outline button-large" href={p.resumeUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /> View resume <ArrowUpRight size={17} /></a>}<button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Download resume (PDF)</button></div><div className="contact-details">{p.email && <span><Mail size={15} /> {p.email}</span>}{p.phone && <span><Phone size={15} /> {p.phone}</span>}<span><MapPin size={15} /> {p.location}</span></div></div>
+        <div className="contact-content"><span className="eyebrow">06 / YOUR NEXT IDEA STARTS HERE</span><h2>Have a good problem?<br /><span className="gradient-text">Let's solve it.</span></h2><p>Have a project, opportunity, or collaboration in mind? Tell me what you're working on and let's talk through the possibilities.</p><div className="contact-actions"><a className="button button-primary button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); openEditor(); } }}><Mail size={17} /> {email ? 'Send me an email' : 'Add contact email'} <ArrowUpRight size={17} /></a>{p.resumeUrl && <a className="button button-outline button-large" href={p.resumeUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /> View resume <ArrowUpRight size={17} /></a>}{p.resumeFileData && <a className="button button-outline button-large" href={p.resumeFileData} download={p.resumeFileName || 'Isaac-Baraka-Ogubi-CV.pdf'}><Download size={17} /> Download uploaded CV</a>}<button className="button button-outline button-large" onClick={downloadResume}><FileText size={17} /> Generate CV from profile</button></div><div className="contact-details">{p.email && <span><Mail size={15} /> {p.email}</span>}{p.phone && <span><Phone size={15} /> {p.phone}</span>}<span><MapPin size={15} /> {p.location}</span></div></div>
         <div className="contact-side"><div className="contact-orbit"><div className="orbit-core"><Code2 size={36} /></div><span className="orbit-label orbit-label-one">IDEA</span><span className="orbit-label orbit-label-two">BUILD</span><span className="orbit-label orbit-label-three">IMPACT</span></div><div className="social-links"><IconLink href={data.links.linkedin} label="LinkedIn"><Linkedin /></IconLink><IconLink href={data.links.github} label="GitHub profile"><Github /></IconLink><IconLink href={data.links.website} label="Website"><Globe /></IconLink><IconLink href={contactHref} label="Email"><Mail /></IconLink></div></div>
       </section>
     </main>
@@ -675,7 +715,7 @@ function App() {
     {/* Account overlay appears only while login or account settings are open. */}
     {authView && <div className="editor-backdrop auth-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeAuth(); }}>
       <section className="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-        <div className="editor-header"><div><span className="eyebrow">LOCAL EDITOR ACCESS</span><h2 id="auth-title">{authView === 'login' ? 'Admin login' : 'Account settings'}</h2><p>{authView === 'login' ? 'Sign in to manage this browser's local portfolio draft.' : 'Change the email address and password used for this browser.'}</p></div><button className="editor-close" onClick={closeAuth} aria-label="Close dialog"><X /></button></div>
+        <div className="editor-header"><div><span className="eyebrow">LOCAL EDITOR ACCESS</span><h2 id="auth-title">{authView === 'login' ? 'Admin login' : 'Account settings'}</h2><p>{authView === 'login' ? "Sign in to manage this browser's local portfolio draft." : 'Change the email address and password used for this browser.'}</p></div><button className="editor-close" onClick={closeAuth} aria-label="Close dialog"><X /></button></div>
         {authError && <p className="auth-error" role="alert">{authError}</p>}
         {authView === 'login' ? <form className="auth-form" onSubmit={handleLogin}>
           <Field label="Email address" value={loginEmail} onChange={setLoginEmail} type="email" />
@@ -707,7 +747,7 @@ function App() {
             <Field label="Availability status" value={draft.profile.availability} onChange={v => updateProfile('availability', v)} />
             <Field label="Experience label" value={draft.profile.yearsExperience} onChange={v => updateProfile('yearsExperience', v)} />
             <ImageUploadField label="Homepage profile image" value={draft.profile.portraitUrl} onChange={v => updateProfile('portraitUrl', v)} wide />
-            <Field label="Resume URL (optional)" value={draft.profile.resumeUrl} onChange={v => updateProfile('resumeUrl', v)} />
+            <Field label="Resume URL (optional)" value={draft.profile.resumeUrl} onChange={v => updateProfile('resumeUrl', v)} /><CvUploadField value={draft.profile.resumeFileData || ''} fileName={draft.profile.resumeFileName || ''} onChange={(fileData, name) => setDraft(prev => ({ ...prev, profile: { ...prev.profile, resumeFileData: fileData, resumeFileName: name } }))} />
             <Field label="Short headline" value={draft.profile.headline} onChange={v => updateProfile('headline', v)} wide />
             <Field label="About me" value={draft.profile.about} onChange={v => updateProfile('about', v)} multiline wide />
           </div>}
