@@ -193,7 +193,7 @@ function CvUploadField({ value, fileName, onChange }) {
       event.target.value = '';
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 4 * 1024 * 1024) {
       setError('Choose a CV smaller than 5 MB.');
       event.target.value = '';
       return;
@@ -252,7 +252,7 @@ function CvUploadField({ value, fileName, onChange }) {
   return <div className="field field-wide cv-upload-field">
     <span>Upload CV (PDF)</span>
     <div className="cv-upload-control">
-      <div className="cv-upload-file"><FileText size={22} /><div><strong>{fileName || 'No CV uploaded'}</strong><small>{value ? 'Hosted PDF · public download link' : 'PDF only · maximum 5 MB'}</small></div></div>
+      <div className="cv-upload-file"><FileText size={22} /><div><strong>{fileName || 'No CV uploaded'}</strong><small>{value ? 'Hosted PDF · public download link' : 'PDF only · maximum 4 MB'}</small></div></div>
       <div className="cv-upload-actions">
         <button type="button" className="button button-quiet" disabled={busy} onClick={() => inputRef.current?.click()}><Upload size={15} /> {busy ? 'Please wait…' : value ? 'Replace CV' : 'Upload CV PDF'}</button>
         {value && <button type="button" className="button button-outline" disabled={busy} onClick={removeFile}>Remove CV</button>}
