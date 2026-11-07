@@ -55,6 +55,7 @@ export const starterData = {
       demo: 'https://hussein-mboya-tours.vercel.app',
       repo: 'https://github.com/isaacokubi/hussein-mboya-tours',
       image: '',
+      screenshots: [],
       featured: true,
     },
     {
@@ -65,6 +66,7 @@ export const starterData = {
       demo: 'https://bookhub-swart.vercel.app',
       repo: 'https://github.com/isaacokubi/bookhub',
       image: '',
+      screenshots: [],
       featured: true,
     },
     {
@@ -75,6 +77,7 @@ export const starterData = {
       demo: 'https://angelshome.vercel.app/',
       repo: 'https://github.com/isaacokubi/angelshome',
       image: '',
+      screenshots: [],
       featured: true,
     },
   ],
