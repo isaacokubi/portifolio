@@ -32,7 +32,7 @@ async function hashPassword(password) {
 // Blank templates ensure each new editor entry starts with the fields expected by its section.
 const emptyEntry = {
   skills: { name: '', level: 'Intermediate', group: 'General' },
-  projects: { title: '', category: 'Web application', description: '', stack: '', demo: '', image: '', featured: false },
+  projects: { title: '', category: 'Web application', description: '', stack: '', demo: '', repo: '', image: '', featured: false },
   education: { qualification: '', institution: '', start: '', end: '', status: 'Completed', details: '' },
   experience: { role: '', company: '', start: '', end: '', location: '', details: '' },
   certifications: { name: '', issuer: '', date: '', credential: '' },
@@ -574,7 +574,7 @@ function App() {
         <SectionHeading number="03" eyebrow="SELECTED PROJECTS" title={<>A few things I've<br /><span className="muted-heading">been building.</span></>} detail="Projects are where problem-solving meets practice. Open a live demo when one is available." />
         <div className="project-grid">{featuredProjects.map((project, index) => <article className={cx('project-card', index === 0 && 'project-featured')} key={project.title}>
           <div className={cx('project-art', `project-art-${index % 3}`)}>{project.image && <img className="project-cover-image" src={project.image} alt={project.title + ' project preview'} loading="lazy" />}<div className="project-art-top"><span>0{index + 1} / PROJECT</span><span className="art-spark"><ArrowUpRight size={20} /></span></div><div className="project-graphic"><div className="graphic-window"><div className="graphic-lines"><i /><i /><i /></div><div className="graphic-panel"><span /><span /><span /></div><div className="graphic-base" /></div><div className="graphic-orb" /></div><span className="project-category">{project.category}</span></div>
-          <div className="project-info"><div className="project-title-row"><h3>{project.title}</h3><span className="project-index">0{index + 1}</span></div><p>{project.description}</p><div className="stack-list">{(project.stack || '').split(',').map(s => s.trim()).filter(Boolean).map(s => <span key={s}>{s}</span>)}</div><div className="project-links">{project.demo && <a href={project.demo} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Live demo <ArrowUpRight size={14} /></a>}</div></div>
+          <div className="project-info"><div className="project-title-row"><h3>{project.title}</h3><span className="project-index">0{index + 1}</span></div><p>{project.description}</p><div className="stack-list">{(project.stack || '').split(',').map(s => s.trim()).filter(Boolean).map(s => <span key={s}>{s}</span>)}</div><div className="project-links">{project.demo && <a href={project.demo} target="_blank" rel="noreferrer"><ExternalLink size={15} /> Live demo <ArrowUpRight size={14} /></a>}{project.repo && <a href={project.repo} target="_blank" rel="noreferrer"><Github size={15} /> View source <ArrowUpRight size={14} /></a>}</div></div>
         </article>)}
         {featuredProjects.length === 0 && <div className="empty-state">Your featured projects will appear here. Use <strong>Edit portfolio</strong> to add and feature projects.</div>}</div>
       </section>
@@ -608,7 +608,7 @@ function App() {
     {/* Account overlay appears only while login or account settings are open. */}
     {authView && <div className="editor-backdrop auth-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeAuth(); }}>
       <section className="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-        <div className="editor-header"><div><span className="eyebrow">PRIVATE PORTFOLIO ACCESS</span><h2 id="auth-title">{authView === 'login' ? 'Admin login' : 'Account settings'}</h2><p>{authView === 'login' ? 'Sign in to manage your portfolio.' : 'Change the email address and password used for this browser.'}</p></div><button className="editor-close" onClick={closeAuth} aria-label="Close dialog"><X /></button></div>
+        <div className="editor-header"><div><span className="eyebrow">LOCAL EDITOR ACCESS</span><h2 id="auth-title">{authView === 'login' ? 'Admin login' : 'Account settings'}</h2><p>{authView === 'login' ? 'Sign in to manage this browser's local portfolio draft.' : 'Change the email address and password used for this browser.'}</p></div><button className="editor-close" onClick={closeAuth} aria-label="Close dialog"><X /></button></div>
         {authError && <p className="auth-error" role="alert">{authError}</p>}
         {authView === 'login' ? <form className="auth-form" onSubmit={handleLogin}>
           <Field label="Email address" value={loginEmail} onChange={setLoginEmail} type="email" />
@@ -628,7 +628,7 @@ function App() {
     {/* Editor overlay works on a draft copy and offers save/cancel plus JSON backup controls. */}
     {editing && draft && <div className="editor-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) closeEditor(); }}>
       <section className="editor-panel" role="dialog" aria-modal="true" aria-labelledby="editor-title">
-        <div className="editor-header"><div><span className="eyebrow">YOUR PERSONAL BRAND</span><h2 id="editor-title">Portfolio editor</h2><p>Update your public-facing details and save a local draft. This static version stores changes only in this browser; it does not publish them for other visitors.</p></div><button className="editor-close" onClick={closeEditor} aria-label="Close editor"><X /></button></div>
+        <div className="editor-header"><div><span className="eyebrow">YOUR PERSONAL BRAND</span><h2 id="editor-title">Portfolio editor</h2><p>Update this browser's local portfolio draft. Saving here does not publish changes to the live website; publish updates through the GitHub repository and redeploy.</p></div><button className="editor-close" onClick={closeEditor} aria-label="Close editor"><X /></button></div>
         <div className="editor-toolbar"><div className="editor-tabs">{[['profile','Profile'],['links','Links'],['skills','Skills'],['projects','Projects'],['education','Education'],['experience','Experience'],['certifications','Certificates'],['services','Services']].map(([key, label]) => <button key={key} className={cx('editor-tab', activeTab === key && 'active')} onClick={() => { setActiveTab(key); setEditIndex(null); }}>{label}</button>)}</div></div>
         <div className="editor-body">
           {activeTab === 'profile' && <div className="editor-form-grid">
@@ -644,7 +644,7 @@ function App() {
             <Field label="Short headline" value={draft.profile.headline} onChange={v => updateProfile('headline', v)} wide />
             <Field label="About me" value={draft.profile.about} onChange={v => updateProfile('about', v)} multiline wide />
           </div>}
-          {activeTab === 'links' && <div className="editor-form-grid">{[['linkedin','LinkedIn URL'],['github','GitHub profile URL'],['website','Personal website URL'],['email','Public contact email']].map(([key, label]) => <Field key={key} label={label} value={draft.links[key] || ''} onChange={v => updateLink(key, v)} />)}<p className="editor-help wide">Use full https:// profile URLs. Your GitHub profile can help employers review your work; individual project cards display live demos only, never source-code links.</p></div>}
+          {activeTab === 'links' && <div className="editor-form-grid">{[['linkedin','LinkedIn URL'],['github','GitHub profile URL'],['website','Personal website URL'],['email','Public contact email']].map(([key, label]) => <Field key={key} label={label} value={draft.links[key] || ''} onChange={v => updateLink(key, v)} />)}<p className="editor-help wide">Use full https:// profile URLs. Add the direct repository URL for each project so employers can inspect the source code. Project cards display both live demos and source links when provided.</p></div>}
           {['skills','projects','education','experience','certifications','services'].includes(activeTab) && <div className="editor-list-area">
             <div className="editor-list-head"><div><h3>{sectionLabels[activeTab] || 'Certifications'}</h3><p>{draft[activeTab].length} saved {activeTab} entries</p></div><button className="button button-quiet" onClick={() => { setNewEntry(prev => ({ ...prev, [activeTab]: { ...emptyEntry[activeTab] } })); setEditIndex('new'); }}><Plus size={16} /> Add entry</button></div>
             {editIndex === 'new' && <EntryForm type={activeTab} value={newEntry[activeTab] || emptyEntry[activeTab]} onChange={v => setNewEntry(prev => ({ ...prev, [activeTab]: v }))} onSave={() => { addEntry(activeTab); setEditIndex(null); }} onCancel={() => setEditIndex(null)} />}
@@ -670,7 +670,7 @@ function Field({ label, value, onChange, type = 'text', multiline = false, wide 
 function EntryForm({ type, value, onChange, onSave, onCancel }) {
   const fields = {
     skills: [['name','Skill name'],['level','Level'],['group','Category']],
-    projects: [['title','Project title'],['category','Category'],['description','Description','textarea'],['stack','Tech stack (comma separated)'],['demo','Live demo URL (optional)'],['image','Project cover image','image'],['featured','Show on portfolio','checkbox']],
+    projects: [['title','Project title'],['category','Category'],['description','Description','textarea'],['stack','Tech stack (comma separated)'],['demo','Live demo URL (optional)'],['repo','GitHub repository URL (optional)'],['image','Project cover image','image'],['featured','Show on portfolio','checkbox']],
     education: [['qualification','Qualification'],['institution','Institution'],['start','Start date/year'],['end','End date/year'],['status','Status'],['details','Details','textarea']],
     experience: [['role','Role / position'],['company','Company / organisation'],['start','Start date/year'],['end','End date/year or Present'],['location','Location'],['details','Responsibilities / achievements','textarea']],
     certifications: [['name','Certificate / course name'],['issuer','Issuing organisation'],['date','Date earned'],['credential','Credential URL']],
