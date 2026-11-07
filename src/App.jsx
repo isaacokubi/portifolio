@@ -52,11 +52,36 @@ function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return starterData;
     const parsed = JSON.parse(saved);
+    const savedProjects = (Array.isArray(parsed.projects) ? parsed.projects : []).map(({ link, ...project }) => project);
+    const currentProjects = starterData.projects.map(project => {
+      const saved = savedProjects.find(item =>
+        item.repo === project.repo ||
+        item.title?.toLowerCase() === project.title.toLowerCase() ||
+        (project.title === 'Hussein Mboya Tours' && item.title === 'Coherent Tours')
+      );
+      return {
+        ...saved,
+        ...project,
+        image: saved?.image || project.image,
+        featured: saved?.featured ?? project.featured,
+      };
+    });
+    const customProjects = savedProjects.filter(item =>
+      !currentProjects.some(project => project.title === item.title || (item.title === 'Coherent Tours' && project.title === 'Hussein Mboya Tours'))
+    );
     return {
-      ...starterData, ...parsed,
-      profile: { ...starterData.profile, ...(parsed.profile || {}) },
+      ...starterData,
+      ...parsed,
+      profile: {
+        ...parsed.profile,
+        ...starterData.profile,
+        email: parsed.profile?.email || starterData.profile.email,
+        phone: parsed.profile?.phone || starterData.profile.phone,
+        portraitUrl: parsed.profile?.portraitUrl || starterData.profile.portraitUrl,
+        resumeUrl: parsed.profile?.resumeUrl || starterData.profile.resumeUrl,
+      },
       links: { ...starterData.links, ...(parsed.links || {}) },
-      projects: (Array.isArray(parsed.projects) ? parsed.projects : starterData.projects).map(({ link, ...project }) => project),
+      projects: [...currentProjects, ...customProjects],
     };
   } catch {
     return starterData;
