@@ -24,7 +24,9 @@ Project descriptions are summaries, not claims that every feature or third-party
 ## Features
 
 - Responsive portfolio sections for About, Skills, Projects, Education, Experience, Certifications, Services and Contact.
-- Individual project cards support both live-demo and direct GitHub source-code links.
+- Individual project cards support live-demo and direct GitHub source-code links, plus multiple uploaded application screenshots.
+- The editor accepts up to 8 JPG, PNG, or WebP screenshots per project, compresses them in the browser, previews them, and lets you remove or replace them. The first screenshot becomes the project cover; additional screenshots appear in a scrollable gallery.
+- To publish uploaded screenshots on the public site, save the editor changes, export the portfolio JSON backup, then commit the exported project screenshot data through `src/data.js` and redeploy. The current static editor stores uploads in the current browser only; it does not upload files to a server or publish them automatically.
 - Downloadable PDF résumé generated in the browser from the displayed profile data.
 - Browser-local portfolio editor with JSON import/export backup.
 - Basic SEO metadata, social preview metadata, keyboard focus styles, skip navigation and reduced-motion support.
