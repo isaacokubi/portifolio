@@ -2,26 +2,24 @@
 export const starterData = {
   // Personal identity and the text displayed in the hero, About, and contact sections.
   profile: {
-    name: 'Isaac Okubi', // Name shown in the site header and résumé.
-    role: 'Software Developer', // Main professional title.
-    location: 'Kenya', // Location shown beside contact details.
-    email: 'izobrack3@gmail.com', // Default contact email used when no public link overrides it.
-    phone: '', // Optional phone number; leave blank to hide it.
-    headline: 'I turn ideas into reliable digital products.', // Short hero statement.
-    about: "I'm a software developer focused on building modern websites, practical business systems, and mobile experiences. I enjoy solving real problems with thoughtful user experiences, maintainable code, and technology that helps people work smarter.", // Longer biography paragraph.
-    availability: 'Open to opportunities', // Availability badge text.
-    yearsExperience: 'Early-career developer', // Experience summary label.
-    resumeUrl: '', // Optional external résumé URL.
-    portraitUrl: '', // Optional profile image URL or browser-saved image data.
+    name: 'Isaac Baraka Ogubi',
+    role: 'Full-Stack Software Developer',
+    location: 'Nairobi, Kenya',
+    email: 'izobrack3@gmail.com',
+    phone: '',
+    headline: 'I design and build practical web and mobile applications, business platforms, and digital systems.',
+    about: "I'm a Kenya-based full-stack software developer with a Diploma in Software Development. I build practical web and mobile applications, APIs, and business systems, taking projects from user needs and interface design through backend workflows, data, testing, and deployment. My work focuses on solving real problems for businesses, schools, and users through maintainable software and clear user experiences.",
+    availability: 'Open to junior, full-stack and freelance opportunities',
+    yearsExperience: 'Early-career developer',
+    resumeUrl: '',
+    portraitUrl: '',
   },
-  // Public profile/contact destinations used by social icons and contact actions.
   links: {
-    linkedin: '', // LinkedIn profile URL; empty values are not displayed.
-    github: 'https://github.com/isaacokubi', // GitHub profile URL.
-    website: '', // Optional personal website URL.
-    email: 'izobrack3@gmail.com', // Public email link used by contact actions.
+    linkedin: '',
+    github: 'https://github.com/isaacokubi',
+    website: '',
+    email: 'izobrack3@gmail.com',
   },
-  // Skills are grouped for display; each entry supplies a label, confidence level, and category.
   skills: [
     { name: 'JavaScript', level: 'Advanced', group: 'Languages' },
     { name: 'HTML & CSS', level: 'Advanced', group: 'Frontend' },
@@ -34,13 +32,50 @@ export const starterData = {
     { name: 'Flutter & Dart', level: 'Intermediate', group: 'Mobile' },
     { name: 'Git & GitHub', level: 'Intermediate', group: 'Tools' },
     { name: 'REST APIs', level: 'Intermediate', group: 'Backend' },
+    { name: 'Socket.IO', level: 'Intermediate', group: 'Backend' },
     { name: 'M-Pesa integration', level: 'Learning', group: 'Integrations' },
   ],
-  // Project cards display these descriptions, technology stacks, and live-demo URLs when available.
   projects: [
-    { title: 'Coherent Tours', category: 'Business platform', description: 'A tour operations management platform concept covering tour catalogues, bookings, team assignments, finance workflows, and multi-tenant business operations.', stack: 'React, Node.js, Express, MongoDB', demo: 'https://hussein-mboya-tours.vercel.app', image: '', featured: true },
-    { title: 'Chatify', category: 'Communication app', description: 'A real-time communication app concept focused on conversations, context-aware memories, and message expiry, with a Flutter client and API backend.', stack: 'Flutter, Dart, Node.js, Socket.IO, MongoDB', demo: '', image: '', featured: true },
-    { title: 'BookHub', category: 'Book marketplace', description: 'A book discovery and selling platform concept with store experiences, product browsing, cart and order flows, reviews, and M-Pesa payment workflows.', stack: 'JavaScript, React, Node.js, MongoDB', demo: 'https://bookhub-swart.vercel.app', image: '', featured: true },
+    {
+      title: 'Chatify',
+      category: 'Communication platform',
+      description: 'A Flutter and Node.js communication platform featuring real-time conversations, structured conversational memories, configurable message expiry, and role-based workspaces. Payment and live-provider capabilities are documented with their current verification limits.',
+      stack: 'Flutter, Dart, Node.js, Express, Socket.IO, MongoDB',
+      demo: '',
+      repo: 'https://github.com/isaacokubi/chatify',
+      image: '',
+      featured: true,
+    },
+    {
+      title: 'Hussein Mboya Tours',
+      category: 'Multi-tenant travel platform',
+      description: 'A tours and travel operations platform built around tenant workspaces, enquiries, quotations, bookings, traveller management, operations, finance, and payment workflows.',
+      stack: 'React, Node.js, Express, MongoDB',
+      demo: 'https://hussein-mboya-tours.vercel.app',
+      repo: 'https://github.com/isaacokubi/hussein-mboya-tours',
+      image: '',
+      featured: true,
+    },
+    {
+      title: 'BookHub',
+      category: 'Book marketplace',
+      description: 'A book discovery and selling platform with product browsing, catalogue and store experiences, cart and order workflows, and payment integration work.',
+      stack: 'JavaScript, React, Node.js, MongoDB',
+      demo: 'https://bookhub-swart.vercel.app',
+      repo: 'https://github.com/isaacokubi/bookhub',
+      image: '',
+      featured: true,
+    },
+    {
+      title: 'AngelsHome',
+      category: 'School management platform',
+      description: 'A school information and management system focused on learner records, school administration, staff workflows, academic information, parent communication, and fee management.',
+      stack: 'JavaScript, React, Node.js, MongoDB',
+      demo: '',
+      repo: 'https://github.com/isaacokubi/angelshome',
+      image: '',
+      featured: true,
+    },
   ],
   // Education history used by the Journey section and generated résumé.
   education: [
