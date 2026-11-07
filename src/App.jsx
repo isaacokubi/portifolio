@@ -532,6 +532,7 @@ function App() {
           <div className="hero-actions">
             <a className="button button-primary button-large" href="#work" onClick={event => { event.preventDefault(); navigateTo("work"); }}>Explore my work <ArrowDownRight size={18} /></a>
             <a className="button button-outline button-large" href={contactHref} onClick={event => { if (!email) { event.preventDefault(); navigateTo("contact"); } }}><Mail size={17} /> Get in touch</a>
+            <button className="button button-outline button-large" onClick={downloadResume}><Download size={17} /> Download CV</button>
           </div>
           <div className="hero-meta"><span><MapPin size={15} /> {p.location || 'Available worldwide'}</span><span><Code2 size={15} /> {p.yearsExperience || 'Software development'}</span></div>
         </div>
