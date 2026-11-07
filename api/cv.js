@@ -3,7 +3,7 @@ import { timingSafeEqual } from 'node:crypto';
 
 export const config = { api: { bodyParser: false } };
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const BLOB_HOST_SUFFIX = '.public.blob.vercel-storage.com';
 
 function authorized(req) {
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
         return send(res, 415, { error: 'Only PDF files can be uploaded.' });
       }
       const declaredLength = Number(req.headers['content-length'] || 0);
-      if (declaredLength > MAX_FILE_SIZE) return send(res, 413, { error: 'The CV must be 5 MB or smaller.' });
+      if (declaredLength > MAX_FILE_SIZE) return send(res, 413, { error: 'The CV must be 4 MB or smaller.' });
       const file = await readBody(req, MAX_FILE_SIZE);
       if (file.length < 5 || file.subarray(0, 5).toString('ascii') !== '%PDF-') {
         return send(res, 415, { error: 'The selected file is not a valid PDF.' });
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST, DELETE');
     return send(res, 405, { error: 'Method not allowed.' });
   } catch (error) {
-    if (error.message === 'FILE_TOO_LARGE') return send(res, 413, { error: 'The CV must be 5 MB or smaller.' });
+    if (error.message === 'FILE_TOO_LARGE') return send(res, 413, { error: 'The CV must be 4 MB or smaller.' });
     console.error('CV storage request failed:', error);
     return send(res, 500, { error: 'CV storage request failed. Check the Vercel function logs.' });
   }
