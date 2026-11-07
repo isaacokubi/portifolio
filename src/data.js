@@ -12,6 +12,8 @@ export const starterData = {
     availability: 'Open to junior, full-stack and freelance opportunities',
     yearsExperience: 'Early-career developer',
     resumeUrl: '',
+    resumeFileData: '',
+    resumeFileName: '',
     portraitUrl: '',
   },
   links: {
